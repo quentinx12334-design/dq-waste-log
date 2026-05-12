@@ -2191,3 +2191,389 @@ body {
 .brand h1 {
   text-wrap: balance;
 }
+
+
+/* Quentin requested: hide category badges on main waste screen and tighten bottom actions */
+.itemName {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.itemName span {
+  display: none !important;
+}
+
+.itemName strong {
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: -0.055em;
+  white-space: nowrap;
+}
+
+.actions {
+  min-height: 58px;
+  max-height: 62px;
+  padding: 7px;
+  border-radius: 20px;
+  grid-template-columns: 180px 1fr;
+  align-items: stretch;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.clearBtn,
+.submitBtn {
+  min-height: 44px;
+  height: 100%;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  white-space: nowrap;
+}
+
+.submitBtn {
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 980px), (max-height: 620px) {
+  .kiosk {
+    grid-template-rows: 58px 76px minmax(0, 1fr) 60px;
+    gap: 7px;
+  }
+
+  .actions {
+    min-height: 56px;
+    max-height: 60px;
+    grid-template-columns: 168px 1fr;
+    padding: 7px;
+  }
+
+  .clearBtn,
+  .submitBtn {
+    min-height: 42px;
+    font-size: 14px;
+  }
+
+  .itemName strong {
+    font-size: 22px;
+  }
+}
+
+/* Final 960x600 kiosk polish: remove bottom action container box and fit Summary header */
+.actions {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-height: 54px !important;
+  max-height: 56px !important;
+  grid-template-columns: 168px minmax(0, 1fr) !important;
+  gap: 9px !important;
+  align-items: stretch !important;
+}
+
+.clearBtn,
+.submitBtn {
+  min-height: 52px !important;
+  height: 52px !important;
+  border-radius: 17px !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.clearBtn {
+  background: rgba(255, 255, 255, 0.96) !important;
+}
+
+.submitBtn {
+  font-size: 14px !important;
+  letter-spacing: -0.015em !important;
+}
+
+.managerShell {
+  grid-template-rows: 60px minmax(0, 1fr) !important;
+  gap: 8px !important;
+}
+
+.managerTop {
+  min-height: 0 !important;
+  padding: 8px 13px !important;
+  border-radius: 18px !important;
+  align-items: center !important;
+}
+
+.managerTop p {
+  font-size: 8px !important;
+  line-height: 1 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.managerTop h1 {
+  margin: 1px 0 !important;
+  font-size: 22px !important;
+  line-height: 0.95 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.managerTop span {
+  display: block !important;
+  max-width: 570px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 10px !important;
+  line-height: 1.15 !important;
+}
+
+.managerTop button {
+  height: 38px !important;
+  min-width: 118px !important;
+  padding: 0 13px !important;
+  border-radius: 13px !important;
+  font-size: 12px !important;
+}
+
+.reportPanel {
+  grid-template-rows: 68px 74px 42px minmax(0, 1fr) !important;
+  gap: 8px !important;
+}
+
+.reportHeader {
+  padding: 9px 11px !important;
+  border-radius: 16px !important;
+}
+
+.reportHeader h2 {
+  font-size: 20px !important;
+  line-height: 0.98 !important;
+}
+
+.reportHeader span {
+  font-size: 10px !important;
+}
+
+.reportHeader button {
+  height: 38px !important;
+  padding: 0 12px !important;
+  border-radius: 13px !important;
+  font-size: 12px !important;
+}
+
+.managerStats div,
+.insightStrip div,
+.reportCard {
+  border-radius: 16px !important;
+}
+
+@media (max-width: 980px), (max-height: 620px) {
+  .actions {
+    grid-template-columns: 158px minmax(0, 1fr) !important;
+    min-height: 52px !important;
+    max-height: 54px !important;
+  }
+
+  .clearBtn,
+  .submitBtn {
+    min-height: 50px !important;
+    height: 50px !important;
+    font-size: 13px !important;
+  }
+
+  .managerShell {
+    grid-template-rows: 56px minmax(0, 1fr) !important;
+  }
+
+  .managerTop h1 {
+    font-size: 20px !important;
+  }
+
+  .managerTop span {
+    max-width: 480px !important;
+  }
+}
+
+
+/* Final requested UI fixes: no action background box + tighter Summary header */
+.actions,
+.kiosk > .actions {
+  background: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  min-height: 52px !important;
+  max-height: 54px !important;
+  display: grid !important;
+  grid-template-columns: 156px minmax(0, 1fr) !important;
+  gap: 8px !important;
+  align-items: stretch !important;
+  overflow: visible !important;
+}
+
+.actions::before,
+.actions::after {
+  content: none !important;
+  display: none !important;
+}
+
+.clearBtn,
+.submitBtn {
+  min-height: 52px !important;
+  height: 52px !important;
+  border-radius: 18px !important;
+  box-shadow: 0 12px 24px rgba(80, 41, 28, 0.14) !important;
+}
+
+.clearBtn {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid var(--line-strong) !important;
+}
+
+.submitBtn {
+  font-size: 13px !important;
+  letter-spacing: -0.02em !important;
+  white-space: nowrap !important;
+}
+
+.managerShell {
+  grid-template-rows: 52px minmax(0, 1fr) !important;
+  gap: 7px !important;
+}
+
+.managerTop {
+  min-height: 0 !important;
+  height: 52px !important;
+  padding: 6px 12px !important;
+  border-radius: 17px !important;
+  overflow: hidden !important;
+  align-items: center !important;
+}
+
+.managerTop > div {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.managerTop p {
+  margin: 0 !important;
+  font-size: 7px !important;
+  line-height: 1.05 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.managerTop h1 {
+  margin: 0 !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.055em !important;
+  white-space: nowrap !important;
+}
+
+.managerTop span {
+  display: block !important;
+  margin-top: 1px !important;
+  max-width: 500px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 9px !important;
+  line-height: 1.05 !important;
+}
+
+.managerTop button {
+  height: 36px !important;
+  min-width: 112px !important;
+  padding: 0 12px !important;
+  border-radius: 13px !important;
+  font-size: 11px !important;
+  flex-shrink: 0 !important;
+}
+
+.managerWorkspace {
+  min-height: 0 !important;
+}
+
+.reportPanel {
+  grid-template-rows: 64px 70px 40px minmax(0, 1fr) !important;
+  gap: 7px !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.reportHeader {
+  min-height: 0 !important;
+  padding: 8px 10px !important;
+  border-radius: 15px !important;
+}
+
+.reportHeader h2 {
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+.reportHeader span {
+  font-size: 9px !important;
+  line-height: 1.05 !important;
+}
+
+.reportHeader button {
+  height: 36px !important;
+  padding: 0 11px !important;
+  border-radius: 12px !important;
+  font-size: 11px !important;
+}
+
+@media (max-width: 980px), (max-height: 620px) {
+  .kiosk {
+    grid-template-rows: 56px 74px minmax(0, 1fr) 52px !important;
+  }
+
+  .actions,
+  .kiosk > .actions {
+    grid-template-columns: 150px minmax(0, 1fr) !important;
+    min-height: 50px !important;
+    max-height: 52px !important;
+    gap: 7px !important;
+  }
+
+  .clearBtn,
+  .submitBtn {
+    min-height: 50px !important;
+    height: 50px !important;
+  }
+
+  .submitBtn {
+    font-size: 12px !important;
+  }
+
+  .managerShell {
+    grid-template-rows: 50px minmax(0, 1fr) !important;
+  }
+
+  .managerTop {
+    height: 50px !important;
+    padding: 5px 11px !important;
+  }
+
+  .managerTop h1 {
+    font-size: 17px !important;
+  }
+
+  .managerTop span {
+    font-size: 8.5px !important;
+    max-width: 440px !important;
+  }
+
+  .managerTop button {
+    height: 34px !important;
+    min-width: 104px !important;
+    font-size: 10.5px !important;
+  }
+
+  .reportPanel {
+    grid-template-rows: 60px 66px 38px minmax(0, 1fr) !important;
+  }
+}
