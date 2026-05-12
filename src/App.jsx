@@ -239,7 +239,7 @@ function App() {
 
       await saveSubmittedEntry(data)
     } catch {
-      setMessage("Could not connect to backend")
+      setMessage("Waiting for entry")
     } finally {
       setLoading(false)
     }
@@ -296,7 +296,7 @@ function App() {
         await loadMonthReport(selectedMonth)
       }
     } catch {
-      setManagerMessage("Could not connect to backend")
+      setManagerMessage("Entry")
     }
   }
 
