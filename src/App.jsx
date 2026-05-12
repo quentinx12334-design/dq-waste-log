@@ -1,886 +1,1933 @@
-import { useEffect, useMemo, useState } from "react"
-import "./App.css"
-
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000"
-
-const ITEMS = [
-  { name: "Patties", price: 0.66, category: "Grill" },
-  { name: "Strips", price: 0.4, category: "Chicken" },
-  { name: "Buns", price: 0.21, category: "Bread" },
-  { name: "Bacon", price: 0.13, category: "Grill" },
-  { name: "Toast", price: 0.1, category: "Bread" },
-]
-
-const EMPTY_COUNTS = {
-  Patties: 0,
-  Strips: 0,
-  Buns: 0,
-  Bacon: 0,
-  Toast: 0,
+* {
+  box-sizing: border-box;
 }
 
-const MANAGER_PIN = "2580"
-
-const MONTHS = [
-  { number: "01", short: "Jan", name: "January" },
-  { number: "02", short: "Feb", name: "February" },
-  { number: "03", short: "Mar", name: "March" },
-  { number: "04", short: "Apr", name: "April" },
-  { number: "05", short: "May", name: "May" },
-  { number: "06", short: "Jun", name: "June" },
-  { number: "07", short: "Jul", name: "July" },
-  { number: "08", short: "Aug", name: "August" },
-  { number: "09", short: "Sep", name: "September" },
-  { number: "10", short: "Oct", name: "October" },
-  { number: "11", short: "Nov", name: "November" },
-  { number: "12", short: "Dec", name: "December" },
-]
-
-function App() {
-  const currentYear = new Date().getFullYear()
-
-  const [view, setView] = useState("employee")
-  const [counts, setCounts] = useState(EMPTY_COUNTS)
-  const [message, setMessage] = useState("Ready for closing waste count")
-  const [recentEntries, setRecentEntries] = useState([])
-  const [summary, setSummary] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [managerPin, setManagerPin] = useState("")
-  const [managerError, setManagerError] = useState("")
-  const [showSavedFlash, setShowSavedFlash] = useState(false)
-
-  const [selectedYear, setSelectedYear] = useState(currentYear)
-  const [selectedMonth, setSelectedMonth] = useState("")
-  const [monthSummary, setMonthSummary] = useState(null)
-  const [managerMessage, setManagerMessage] = useState(
-    "Select a month to view records"
-  )
-
-  const [editingEntry, setEditingEntry] = useState(null)
-  const [editForm, setEditForm] = useState({
-    item_name: "Patties",
-    quantity: 1,
-    employee_name: "",
-    note: "",
-  })
-
-  const currentTotal = useMemo(() => {
-    return ITEMS.reduce((sum, item) => sum + counts[item.name] * item.price, 0)
-  }, [counts])
-
-  const currentQuantity = useMemo(() => {
-    return Object.values(counts).reduce((sum, count) => sum + count, 0)
-  }, [counts])
-
-  const todayWaste =
-    (summary?.period === "today" ? summary.total_cost : 0) + currentTotal
-
-  const isOverGoal = todayWaste >= 5
-
-  const topMonthItem = useMemo(() => {
-    if (!monthSummary?.items?.length) return null
-
-    return [...monthSummary.items].sort(
-      (a, b) => b.total_cost - a.total_cost
-    )[0]
-  }, [monthSummary])
-
-  const averageMonthlyRecord = useMemo(() => {
-    if (!monthSummary?.row_count) return 0
-
-    return (monthSummary.total_cost || 0) / monthSummary.row_count
-  }, [monthSummary])
-
-  useEffect(() => {
-    loadRecentEntries()
-    loadTodaySummary()
-  }, [])
-
-  async function loadRecentEntries() {
-    try {
-      const response = await fetch(`${API_BASE}/api/entries/recent?limit=10`)
-      const data = await response.json()
-
-      setRecentEntries(data)
-    } catch {
-      setMessage("Ready for closing waste count")
-    }
-  }
-
-  async function loadTodaySummary() {
-    try {
-      const response = await fetch(`${API_BASE}/api/summary?period=today`)
-      const data = await response.json()
-
-      setSummary(data)
-    } catch {
-      setSummary(null)
-      setMessage("Ready for closing waste count")
-    }
-  }
-
-  async function loadMonthReport(monthValue) {
-    try {
-      setManagerMessage("Loading month...")
-
-      const response = await fetch(
-        `${API_BASE}/api/summary/month?month=${monthValue}`
-      )
-
-      const data = await response.json()
-
-      setSelectedMonth(monthValue)
-      setMonthSummary(data)
-      setManagerMessage(`${monthValue} loaded`)
-    } catch {
-      setManagerMessage("Could not load month report")
-    }
-  }
-
-  function changeYear(amount) {
-    setSelectedYear((prev) => prev + amount)
-    setSelectedMonth("")
-    setMonthSummary(null)
-    setEditingEntry(null)
-    setManagerMessage("Select a month to view records")
-  }
-
-  function exportSelectedMonth() {
-    if (!selectedMonth) {
-      setManagerMessage("Select a month before exporting")
-      return
-    }
-
-    window.open(`${API_BASE}/api/export/month?month=${selectedMonth}`, "_blank")
-  }
-
-  function exportSelectedYear() {
-    window.open(`${API_BASE}/api/export/year?year=${selectedYear}`, "_blank")
-  }
-
-  function exportTwoYearReport() {
-    window.open(`${API_BASE}/api/export/two-years`, "_blank")
-  }
-
-  function updateCount(name, amount) {
-    setCounts((prev) => ({
-      ...prev,
-      [name]: Math.max(0, prev[name] + amount),
-    }))
-
-    setMessage("Unsaved closing count")
-  }
-
-  function clearEntry() {
-    setCounts(EMPTY_COUNTS)
-    setMessage("Current count cleared")
-  }
-
-  async function saveSubmittedEntry(data) {
-    setCounts(EMPTY_COUNTS)
-
-    setMessage(
-      `Saved ${data.items_saved} item type(s) • $${data.entry_total.toFixed(2)}`
-    )
-
-    setShowSavedFlash(true)
-    window.setTimeout(() => setShowSavedFlash(false), 1400)
-
-    await loadRecentEntries()
-    await loadTodaySummary()
-
-    if (selectedMonth) {
-      await loadMonthReport(selectedMonth)
-    }
-  }
-
-  async function submitEntry(force = false) {
-    if (currentQuantity === 0) {
-      setMessage("Add at least one item before submitting")
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      const response = await fetch(`${API_BASE}/api/entries`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          counts,
-          employee_name: "",
-          note: "",
-          force,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (response.status === 409 && data.duplicate_warning && !force) {
-        const confirmExtraSubmit = window.confirm(
-          "A closing waste count has already been submitted today. Submit another one?"
-        )
-
-        if (!confirmExtraSubmit) {
-          setMessage("Submit canceled")
-          return
-        }
-
-        await submitEntry(true)
-        return
-      }
-
-      if (!response.ok) {
-        setMessage(data.error || "Could not submit entry")
-        return
-      }
-
-      await saveSubmittedEntry(data)
-    } catch {
-      setMessage("Connection issue — try again")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  function openEdit(entry) {
-    setEditingEntry(entry)
-
-    setEditForm({
-      item_name: entry.item_name,
-      quantity: entry.quantity,
-      employee_name: entry.employee_name || "",
-      note: entry.note || "",
-    })
-  }
-
-  function closeEdit() {
-    setEditingEntry(null)
-
-    setEditForm({
-      item_name: "Patties",
-      quantity: 1,
-      employee_name: "",
-      note: "",
-    })
-  }
-
-  async function saveEdit() {
-    if (!editingEntry) return
-
-    try {
-      const response = await fetch(`${API_BASE}/api/entries/${editingEntry.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(editForm),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setManagerMessage(data.error || "Could not update entry")
-        return
-      }
-
-      setManagerMessage("Entry updated")
-      closeEdit()
-
-      await loadRecentEntries()
-      await loadTodaySummary()
-
-      if (selectedMonth) {
-        await loadMonthReport(selectedMonth)
-      }
-    } catch {
-      setManagerMessage("Connection issue — try again")
-    }
-  }
-
-  async function deleteEdit() {
-    if (!editingEntry) return
-
-    const confirmDelete = window.confirm("Delete this waste entry?")
-    if (!confirmDelete) return
-
-    try {
-      const response = await fetch(`${API_BASE}/api/entries/${editingEntry.id}`, {
-        method: "DELETE",
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setManagerMessage(data.error || "Could not delete entry")
-        return
-      }
-
-      setManagerMessage("Entry deleted")
-      closeEdit()
-
-      await loadRecentEntries()
-      await loadTodaySummary()
-
-      if (selectedMonth) {
-        await loadMonthReport(selectedMonth)
-      }
-    } catch {
-      setManagerMessage("Connection issue — try again")
-    }
-  }
-
-  function formatTime(value) {
-    return new Date(value).toLocaleTimeString([], {
-      hour: "numeric",
-      minute: "2-digit",
-    })
-  }
-
-  function formatDate(value) {
-    return new Date(value).toLocaleDateString([], {
-      month: "short",
-      day: "numeric",
-    })
-  }
-
-  function prettyMonth(monthValue) {
-    if (!monthValue) return "No month selected"
-
-    const [year, month] = monthValue.split("-")
-    const found = MONTHS.find((item) => item.number === month)
-
-    return `${found?.name || month} ${year}`
-  }
-
-  function openManagerGate() {
-    setManagerError("")
-    setManagerPin("")
-    setView("managerGate")
-  }
-
-  function unlockManager(event) {
-    event.preventDefault()
-
-    if (managerPin !== MANAGER_PIN) {
-      setManagerError("Wrong PIN")
-      return
-    }
-
-    setManagerError("")
-    setManagerPin("")
-    setView("manager")
-  }
-
-  function goBackToKiosk() {
-    setView("employee")
-    setManagerPin("")
-    setManagerError("")
-  }
-
-  if (view === "managerGate") {
-    return (
-      <main className="app gateApp">
-        <section className="pinShell">
-          <div className="pinCard">
-            <div className="pinBadge">DQ</div>
-
-            <p>Summary Access</p>
-            <h1>Enter PIN</h1>
-
-            <span>Summary reports, exports, edits, and delete controls.</span>
-
-            <form onSubmit={unlockManager}>
-              <input
-                autoFocus
-                inputMode="numeric"
-                maxLength="4"
-                placeholder="••••"
-                type="password"
-                value={managerPin}
-                onChange={(event) => {
-                  setManagerPin(event.target.value.replace(/\D/g, ""))
-                  setManagerError("")
-                }}
-              />
-
-              {managerError && (
-                <strong className="pinError">{managerError}</strong>
-              )}
-
-              <button type="submit">Unlock Summary</button>
-
-              <button
-                className="pinCancel"
-                type="button"
-                onClick={goBackToKiosk}
-              >
-                Back to Kiosk
-              </button>
-            </form>
-          </div>
-        </section>
-      </main>
-    )
-  }
-
-  if (view === "manager") {
-    return (
-      <main className="app">
-        <section className="managerShell">
-          <header className="managerTop">
-            <div>
-              <p>Summary Dashboard</p>
-              <h1>Waste Summary</h1>
-              <span>{managerMessage}</span>
-            </div>
-
-            <button onClick={goBackToKiosk}>Back to Kiosk</button>
-          </header>
-
-          <section className="managerWorkspace">
-            <aside className="monthPanel">
-              <div className="yearCard">
-                <button onClick={() => changeYear(-1)}>−</button>
-
-                <div>
-                  <p>Selected Year</p>
-                  <strong>{selectedYear}</strong>
-                </div>
-
-                <button onClick={() => changeYear(1)}>+</button>
-              </div>
-
-              <div className="exportButtons">
-                <button className="annualButton" onClick={exportSelectedYear}>
-                  Export {selectedYear} Report
-                </button>
-
-                <button className="twoYearButton" onClick={exportTwoYearReport}>
-                  Export Full Report
-                </button>
-              </div>
-
-              <div className="monthGrid">
-                {MONTHS.map((month) => {
-                  const monthValue = `${selectedYear}-${month.number}`
-
-                  return (
-                    <button
-                      key={monthValue}
-                      className={
-                        selectedMonth === monthValue
-                          ? "monthTile activeMonthTile"
-                          : "monthTile"
-                      }
-                      onClick={() => loadMonthReport(monthValue)}
-                    >
-                      <span>{month.number}</span>
-                      <strong>{month.short}</strong>
-                    </button>
-                  )
-                })}
-              </div>
-            </aside>
-
-            <section className="reportPanel">
-              {!monthSummary ? (
-                <div className="emptyReport">
-                  <h2>Select a month</h2>
-                  <p>
-                    Choose one of the 12 months on the left. The report, entry
-                    history, edit buttons, and export button will appear here.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <div className="reportHeader">
-                    <div>
-                      <p>Monthly Summary</p>
-                      <h2>{prettyMonth(monthSummary.month)}</h2>
-                      <span>
-                        {monthSummary.row_count} saved entries •{" "}
-                        {monthSummary.total_quantity} items wasted
-                      </span>
-                    </div>
-
-                    <button onClick={exportSelectedMonth}>
-                      Export Monthly Report
-                    </button>
-                  </div>
-
-                  <div className="managerStats">
-                    <div>
-                      <p>Monthly Loss</p>
-                      <strong>
-                        ${(monthSummary.total_cost || 0).toFixed(2)}
-                      </strong>
-                      <span>Estimated food cost</span>
-                    </div>
-
-                    <div>
-                      <p>Items Wasted</p>
-                      <strong>{monthSummary.total_quantity || 0}</strong>
-                      <span>Total items logged</span>
-                    </div>
-
-                    <div>
-                      <p>Entries Saved</p>
-                      <strong>{monthSummary.row_count || 0}</strong>
-                      <span>Saved waste entries</span>
-                    </div>
-
-                    <div>
-                      <p>Top Item</p>
-                      <strong>{topMonthItem?.item_name || "—"}</strong>
-                      <span>
-                        {topMonthItem
-                          ? `$${topMonthItem.total_cost.toFixed(2)} lost`
-                          : "No waste logged"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="insightStrip">
-                    <div>
-                      <p>Average per Entry</p>
-                      <strong>${averageMonthlyRecord.toFixed(2)}</strong>
-                    </div>
-                  </div>
-
-                  <div className="reportGrid">
-                    <div className="reportCard">
-                      <h3>Item Breakdown</h3>
-
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Item</th>
-                            <th>Qty</th>
-                            <th>Cost</th>
-                          </tr>
-                        </thead>
-
-                        <tbody>
-                          {ITEMS.map((item) => {
-                            const found = monthSummary.items?.find(
-                              (row) => row.item_name === item.name
-                            )
-
-                            return (
-                              <tr key={item.name}>
-                                <td>{item.name}</td>
-                                <td>{found?.quantity || 0}</td>
-                                <td>${(found?.total_cost || 0).toFixed(2)}</td>
-                              </tr>
-                            )
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    <div className="reportCard">
-                      <h3>Entry History</h3>
-
-                      <div className="entryList">
-                        {monthSummary.entries?.length === 0 ? (
-                          <p className="emptyText">
-                            No entries for this month.
-                          </p>
-                        ) : (
-                          monthSummary.entries.map((entry) => (
-                            <div className="entryRow" key={entry.id}>
-                              <div>
-                                <strong>{entry.item_name}</strong>
-                                <p>
-                                  {formatDate(entry.created_at)} •{" "}
-                                  {formatTime(entry.created_at)} • Qty{" "}
-                                  {entry.quantity}
-                                </p>
-                              </div>
-
-                              <div className="entryActions">
-                                <span>${entry.total_cost.toFixed(2)}</span>
-
-                                <button onClick={() => openEdit(entry)}>
-                                  Edit
-                                </button>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </section>
-          </section>
-        </section>
-
-        {editingEntry && (
-          <section className="editOverlay">
-            <div className="editPanel">
-              <div className="editHeader">
-                <div>
-                  <p>Summary Edit</p>
-                  <h2>Edit Waste Entry</h2>
-                  <span>Entry #{editingEntry.id}</span>
-                </div>
-
-                <button onClick={closeEdit}>×</button>
-              </div>
-
-              <div className="editGrid">
-                <label>
-                  Item
-                  <select
-                    value={editForm.item_name}
-                    onChange={(event) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        item_name: event.target.value,
-                      }))
-                    }
-                  >
-                    {ITEMS.map((item) => (
-                      <option key={item.name} value={item.name}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label>
-                  Quantity
-                  <input
-                    type="number"
-                    min="1"
-                    value={editForm.quantity}
-                    onChange={(event) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        quantity: event.target.value,
-                      }))
-                    }
-                  />
-                </label>
-
-                <label>
-                  Employee
-                  <input
-                    value={editForm.employee_name}
-                    onChange={(event) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        employee_name: event.target.value,
-                      }))
-                    }
-                    placeholder="Optional"
-                  />
-                </label>
-
-                <label className="noteField">
-                  Note
-                  <textarea
-                    value={editForm.note}
-                    onChange={(event) =>
-                      setEditForm((prev) => ({
-                        ...prev,
-                        note: event.target.value,
-                      }))
-                    }
-                    placeholder="Optional note"
-                  />
-                </label>
-              </div>
-
-              <div className="editActions">
-                <button className="deleteEntryBtn" onClick={deleteEdit}>
-                  Delete
-                </button>
-
-                <button className="cancelEditBtn" onClick={closeEdit}>
-                  Cancel
-                </button>
-
-                <button className="saveEditBtn" onClick={saveEdit}>
-                  Save Changes
-                </button>
-              </div>
-            </div>
-          </section>
-        )}
-      </main>
-    )
-  }
-
-  return (
-    <main className="app">
-      <section className="kiosk">
-        <header className="header">
-          <div className="brand">
-            <div className="brandIcon">DQ</div>
-
-            <div>
-              <p>Closing Operations</p>
-              <h1>Waste Log</h1>
-            </div>
-          </div>
-
-          <div className="headerMeta">
-            <p>
-              {new Date().toLocaleDateString([], {
-                weekday: "long",
-                month: "short",
-                day: "numeric",
-              })}
-            </p>
-
-            <button className="managerBtn" onClick={openManagerGate}>
-              Summary
-            </button>
-          </div>
-        </header>
-
-        <section className="topStats">
-          <div className={isOverGoal ? "totalPanel warning" : "totalPanel"}>
-            <p>Today’s Total</p>
-            <strong>${todayWaste.toFixed(2)}</strong>
-            <span>
-              {isOverGoal ? "Above daily target" : "Within daily target"}
-            </span>
-          </div>
-
-          <div className="smallStat">
-            <p>Current Count</p>
-            <strong>${currentTotal.toFixed(2)}</strong>
-            <span>{currentQuantity} items selected</span>
-          </div>
-
-          <div className="smallStat">
-            <p>Saved Today</p>
-            <strong>{summary?.row_count || 0}</strong>
-            <span>Saved entries</span>
-          </div>
-        </section>
-
-        <section className="mainArea">
-          <section className="entryArea">
-            <div className="sectionTitle">
-              <div>
-                <h2>Closing Waste Count</h2>
-                <p>Enter the final waste count at close, then submit once.</p>
-              </div>
-
-              <div className="saveStatus">
-                {loading ? "Saving..." : message}
-              </div>
-            </div>
-
-            <div className="wasteRows">
-              {ITEMS.map((item) => {
-                const quantity = counts[item.name]
-                const itemTotal = quantity * item.price
-
-                return (
-                  <article className="wasteRow" key={item.name}>
-                    <div className="itemName">
-                      <span>{item.category}</span>
-                      <strong>{item.name}</strong>
-                    </div>
-
-                    <div className="itemPrice">
-                      <p>Each</p>
-                      <strong>${item.price.toFixed(2)}</strong>
-                    </div>
-
-                    <button
-                      className="qtyBtn minus"
-                      onClick={() => updateCount(item.name, -1)}
-                    >
-                      −
-                    </button>
-
-                    <div className="qtyDisplay">
-                      <p>Qty</p>
-                      <strong>{quantity}</strong>
-                    </div>
-
-                    <button
-                      className="qtyBtn plus"
-                      onClick={() => updateCount(item.name, 1)}
-                    >
-                      +
-                    </button>
-
-                    <div className="rowTotal">
-                      <p>Total</p>
-                      <strong>${itemTotal.toFixed(2)}</strong>
-                    </div>
-                  </article>
-                )
-              })}
-            </div>
-          </section>
-
-          <aside className="recentArea">
-            <div className="sectionTitle compact">
-              <div>
-                <h2>Recent</h2>
-                <p>Latest entries</p>
-              </div>
-            </div>
-
-            <div className="recentList">
-              {recentEntries.length === 0 ? (
-                <div className="emptyState">
-                  <strong>No submissions yet</strong>
-                  <p>Saved entries will appear here.</p>
-                </div>
-              ) : (
-                recentEntries.slice(0, 5).map((entry) => (
-                  <div className="recentCard" key={entry.id}>
-                    <div>
-                      <strong>{entry.item_name}</strong>
-                      <p>
-                        {formatTime(entry.created_at)} • Qty {entry.quantity}
-                      </p>
-                    </div>
-
-                    <span>${entry.total_cost.toFixed(2)}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </aside>
-        </section>
-
-        <footer className="actions">
-          <button className="clearBtn" onClick={clearEntry}>
-            Clear Count
-          </button>
-
-          <button
-            className="submitBtn"
-            onClick={() => submitEntry(false)}
-            disabled={loading}
-          >
-            Submit Closing Waste
-          </button>
-        </footer>
-      </section>
-
-      {showSavedFlash && (
-        <div className="savedToast">
-          <strong>Saved</strong>
-          <span>Closing waste count logged</span>
-        </div>
-      )}
-    </main>
-  )
+:root {
+  --dq-red: #d71920;
+  --dq-red-dark: #a90f18;
+  --dq-red-soft: #fff0f1;
+  --cream: #fff8ed;
+  --cream-2: #f7efe1;
+  --ink: #211816;
+  --ink-soft: #51433f;
+  --muted: #7b6b64;
+  --line: #eadccd;
+  --line-strong: #dcc9b7;
+  --white: #ffffff;
+  --success: #e9f8ef;
+  --warning: #fde8ea;
+  --shadow: 0 14px 34px rgba(80, 41, 28, 0.11);
+  --shadow-strong: 0 20px 55px rgba(80, 41, 28, 0.18);
 }
 
-export default App
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: "Aptos", "Segoe UI", Inter, Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(215, 25, 32, 0.09), transparent 34%),
+    linear-gradient(135deg, var(--cream), var(--cream-2));
+  color: var(--ink);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.app {
+  width: 100vw;
+  min-height: 100dvh;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.kiosk {
+  height: calc(100dvh - 24px);
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-rows: 68px 92px 1fr 70px;
+  gap: 10px;
+}
+
+.header,
+.entryArea,
+.recentArea,
+.actions,
+.totalPanel,
+.smallStat,
+.managerTop,
+.monthPanel,
+.reportPanel,
+.yearCard,
+.annualButton,
+.twoYearButton,
+.monthTile,
+.emptyReport,
+.reportHeader,
+.managerStats div,
+.reportCard,
+.insightStrip div {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.header {
+  border-radius: 22px;
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand,
+.headerMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandIcon,
+.pinBadge {
+  background: linear-gradient(135deg, var(--dq-red), var(--dq-red-dark));
+  color: white;
+  box-shadow: 0 10px 22px rgba(215, 25, 32, 0.25);
+}
+
+.brandIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-weight: 1000;
+  font-size: 18px;
+  letter-spacing: -0.05em;
+}
+
+.brand p,
+.headerMeta p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.brand h1 {
+  margin: 1px 0 0;
+  font-size: 27px;
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+
+.managerBtn,
+.managerTop button,
+.yearCard button,
+.entryActions button {
+  background: var(--ink);
+  color: white;
+}
+
+.managerBtn {
+  height: 40px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.topStats {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 10px;
+}
+
+.totalPanel,
+.smallStat {
+  border-radius: 22px;
+  padding: 13px 16px;
+}
+
+.totalPanel {
+  background: linear-gradient(135deg, #ecfff3, #ffffff);
+  border-color: #b9efce;
+}
+
+.totalPanel.warning {
+  background: linear-gradient(135deg, #fff0f1, #ffffff);
+  border-color: #ffc9cf;
+}
+
+.totalPanel p,
+.smallStat p,
+.managerStats p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.totalPanel strong,
+.smallStat strong,
+.managerStats strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+
+.totalPanel span,
+.smallStat span,
+.managerStats span {
+  display: block;
+  margin-top: 5px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.mainArea {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 230px;
+  gap: 10px;
+}
+
+.entryArea,
+.recentArea {
+  min-height: 0;
+  border-radius: 22px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.entryArea {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 10px;
+}
+
+.sectionTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.sectionTitle h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.sectionTitle p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.saveStatus {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--dq-red-soft);
+  color: var(--dq-red-dark);
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.wasteRows {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.wasteRow {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.15fr 0.65fr 60px 0.6fr 60px 0.75fr;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ffffff, #fffaf2);
+}
+
+.itemName span {
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--dq-red-soft);
+  border: 1px solid #ffd1d5;
+  color: var(--dq-red);
+  font-size: 8px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.itemName strong {
+  display: block;
+  font-size: 21px;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.itemPrice,
+.qtyDisplay,
+.rowTotal {
+  height: 52px;
+  border-radius: 15px;
+  background: white;
+  border: 1px solid var(--line);
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.itemPrice p,
+.qtyDisplay p,
+.rowTotal p {
+  margin: 0 0 3px;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+
+.itemPrice strong,
+.rowTotal strong {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.qtyDisplay strong {
+  font-size: 27px;
+  line-height: 0.9;
+}
+
+.qtyBtn {
+  height: 52px;
+  border: none;
+  border-radius: 15px;
+  color: white;
+  font-size: 28px;
+  font-weight: 1000;
+}
+
+.minus {
+  background: var(--ink);
+}
+
+.plus,
+.submitBtn,
+.reportHeader button,
+.twoYearButton,
+.saveEditBtn,
+.pinCard button {
+  background: linear-gradient(135deg, var(--dq-red), var(--dq-red-dark));
+  color: white;
+}
+
+.qtyBtn:active,
+.submitBtn:active,
+.clearBtn:active,
+.managerBtn:active,
+.managerTop button:active,
+.yearCard button:active,
+.annualButton:active,
+.twoYearButton:active,
+.monthTile:active,
+.reportHeader button:active {
+  transform: scale(0.98);
+}
+
+.recentArea {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 10px;
+}
+
+.recentList {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.emptyState {
+  grid-row: 1 / -1;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  color: var(--muted);
+  padding: 14px;
+}
+
+.emptyState strong {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.emptyState p {
+  margin: 5px 0 0;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.recentCard {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fffaf2;
+  padding: 9px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.recentCard strong {
+  font-size: 13px;
+}
+
+.recentCard p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.recentCard span {
+  font-size: 14px;
+  font-weight: 1000;
+}
+
+.actions {
+  border-radius: 22px;
+  padding: 9px;
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 10px;
+}
+
+.clearBtn,
+.submitBtn {
+  border: none;
+  border-radius: 17px;
+  font-size: 16px;
+  font-weight: 1000;
+}
+
+.clearBtn {
+  background: white;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+}
+
+.submitBtn {
+  border: none;
+}
+
+.managerShell {
+  position: relative;
+  height: calc(100dvh - 24px);
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-rows: 70px 1fr;
+  gap: 10px;
+  overflow: hidden;
+}
+
+
+.managerTop,
+.managerWorkspace {
+  position: relative;
+  z-index: 1;
+}
+
+
+.managerTop {
+  border-radius: 22px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.managerTop p {
+  margin: 0;
+  color: var(--dq-red);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.managerTop h1 {
+  margin: 2px 0;
+  font-size: 29px;
+  line-height: 1;
+  letter-spacing: -0.06em;
+}
+
+.managerTop span {
+  color: var(--muted);
+  font-weight: 750;
+  font-size: 11px;
+}
+
+.managerTop button {
+  height: 40px;
+  padding: 0 17px;
+  border: none;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.managerWorkspace {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 10px;
+}
+
+.monthPanel,
+.reportPanel {
+  min-height: 0;
+  border-radius: 22px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.monthPanel {
+  display: grid;
+  grid-template-rows: 68px 100px 1fr;
+  gap: 10px;
+}
+
+.yearCard {
+  border-radius: 18px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: 50px 1fr 50px;
+  gap: 8px;
+  align-items: center;
+}
+
+.yearCard button {
+  height: 48px;
+  border: none;
+  border-radius: 15px;
+  font-size: 24px;
+  font-weight: 1000;
+}
+
+.yearCard div {
+  text-align: center;
+}
+
+.yearCard p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.yearCard strong {
+  display: block;
+  font-size: 29px;
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+
+.exportButtons {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 10px;
+}
+
+.annualButton,
+.twoYearButton {
+  height: 45px;
+  border: none;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.annualButton {
+  background: var(--ink);
+  color: white;
+}
+
+.monthGrid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.monthTile {
+  border-radius: 17px;
+  padding: 10px;
+  text-align: left;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.monthTile span {
+  width: 30px;
+  height: 30px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: var(--dq-red-soft);
+  color: var(--dq-red);
+  font-size: 11px;
+  font-weight: 1000;
+}
+
+.monthTile strong {
+  display: block;
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.activeMonthTile {
+  background: linear-gradient(135deg, var(--dq-red), var(--dq-red-dark));
+  color: white;
+}
+
+.activeMonthTile span {
+  background: white;
+  color: var(--dq-red);
+}
+
+.reportPanel {
+  display: grid;
+  grid-template-rows: 82px 88px 58px 1fr;
+  gap: 10px;
+}
+
+.emptyReport {
+  grid-row: 1 / -1;
+  border-radius: 22px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  padding: 24px;
+}
+
+.emptyReport h2 {
+  margin: 0;
+  font-size: 30px;
+  letter-spacing: -0.055em;
+}
+
+.emptyReport p {
+  margin: 8px auto 0;
+  max-width: 460px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.reportHeader {
+  border-radius: 18px;
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.reportHeader p {
+  margin: 0;
+  color: var(--dq-red);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.reportHeader h2 {
+  margin: 2px 0;
+  font-size: 23px;
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.reportHeader span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.reportHeader button {
+  height: 40px;
+  border: none;
+  border-radius: 15px;
+  padding: 0 17px;
+  font-size: 13px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.managerStats {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.managerStats div {
+  border-radius: 18px;
+  padding: 12px;
+}
+
+.managerStats strong {
+  font-size: 23px;
+}
+
+.insightStrip {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.insightStrip div {
+  border-radius: 18px;
+  padding: 11px 14px;
+}
+
+.insightStrip p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.insightStrip strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 17px;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.reportGrid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 0.92fr 1.08fr;
+  gap: 10px;
+}
+
+.reportCard {
+  min-height: 0;
+  border-radius: 18px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.reportCard h3 {
+  margin: 0 0 9px;
+  font-size: 20px;
+  letter-spacing: -0.05em;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  color: var(--muted);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding-bottom: 7px;
+}
+
+td {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.entryList {
+  min-height: 0;
+  max-height: calc(100% - 34px);
+  overflow-y: auto;
+  display: grid;
+  gap: 8px;
+  padding-right: 3px;
+}
+
+.entryRow {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fffaf2;
+  padding: 9px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.entryRow strong {
+  font-size: 13px;
+}
+
+.entryRow p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.entryActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.entryActions span {
+  font-size: 15px;
+  font-weight: 1000;
+}
+
+.entryActions button {
+  height: 32px;
+  border: none;
+  border-radius: 11px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.emptyText {
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.savedToast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 30;
+  min-width: 260px;
+  border-radius: 20px;
+  background: var(--ink);
+  color: white;
+  box-shadow: var(--shadow-strong);
+  padding: 15px 17px;
+  animation: toastIn 0.18s ease-out;
+}
+
+.savedToast strong {
+  display: block;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.savedToast span {
+  display: block;
+  margin-top: 5px;
+  color: #f5e8dc;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.gateApp {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overflow: auto;
+}
+
+.pinShell {
+  width: min(360px, calc(100vw - 32px));
+}
+
+.pinCard {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 22px;
+  border-radius: 22px;
+  background: white;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-strong);
+  text-align: center;
+}
+
+.pinBadge {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 17px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  font-weight: 1000;
+}
+
+.pinCard p {
+  margin: 0;
+  color: var(--dq-red);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pinCard h1 {
+  margin: 5px 0 4px;
+  font-size: 31px;
+  line-height: 1;
+  letter-spacing: -0.065em;
+}
+
+.pinCard > span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.pinCard form {
+  display: grid;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.pinCard input {
+  height: 50px;
+  border: 1px solid var(--line-strong);
+  border-radius: 15px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 1000;
+  letter-spacing: 0.18em;
+  outline: none;
+}
+
+.pinCard input:focus {
+  border-color: var(--dq-red);
+  box-shadow: 0 0 0 4px rgba(215, 25, 32, 0.1);
+}
+
+.pinCard button {
+  height: 46px;
+  border: none;
+  border-radius: 15px;
+  font-size: 13px;
+  font-weight: 1000;
+}
+
+.pinCard .pinCancel {
+  background: white;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+}
+
+.pinError {
+  color: var(--dq-red);
+  font-size: 12px;
+}
+
+.editOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  background: rgba(33, 24, 22, 0.5);
+  padding: 14px;
+  overflow: auto;
+}
+
+.editPanel {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100dvh - 28px);
+  overflow-y: auto;
+  border-radius: 24px;
+  background: white;
+  box-shadow: var(--shadow-strong);
+  padding: 18px;
+}
+
+.editHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.editHeader p {
+  margin: 0;
+  color: var(--dq-red);
+  font-size: 10px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.editHeader h2 {
+  margin: 2px 0;
+  font-size: 27px;
+  letter-spacing: -0.055em;
+}
+
+.editHeader span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.editHeader button {
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 14px;
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.editGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.editGrid label {
+  display: grid;
+  gap: 5px;
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.editGrid input,
+.editGrid select,
+.editGrid textarea {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  padding: 11px 13px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  outline: none;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.editGrid input:focus,
+.editGrid select:focus,
+.editGrid textarea:focus {
+  border-color: var(--dq-red);
+  box-shadow: 0 0 0 4px rgba(215, 25, 32, 0.08);
+}
+
+.noteField {
+  grid-column: 1 / -1;
+}
+
+.noteField textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.editActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.editActions button {
+  height: 48px;
+  border: none;
+  border-radius: 15px;
+  font-size: 14px;
+  font-weight: 1000;
+}
+
+.deleteEntryBtn {
+  background: var(--warning);
+  color: var(--dq-red-dark);
+}
+
+.cancelEditBtn {
+  background: white;
+  border: 1px solid var(--line-strong) !important;
+  color: var(--ink);
+}
+
+@media (max-height: 680px) {
+  .pinCard {
+    padding: 18px;
+  }
+
+  .pinBadge {
+    width: 46px;
+    height: 46px;
+    margin-bottom: 10px;
+  }
+
+  .pinCard h1 {
+    font-size: 27px;
+  }
+
+  .pinCard input {
+    height: 46px;
+    font-size: 22px;
+  }
+
+  .pinCard button {
+    height: 42px;
+  }
+}
+
+@media (max-width: 900px) {
+  .app {
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+  }
+
+  .kiosk,
+  .managerShell {
+    height: auto;
+    min-height: calc(100dvh - 24px);
+    grid-template-rows: auto;
+  }
+
+  .header,
+  .sectionTitle,
+  .managerTop,
+  .reportHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .topStats,
+  .mainArea,
+  .managerWorkspace,
+  .reportGrid,
+  .insightStrip {
+    grid-template-columns: 1fr;
+  }
+
+  .managerStats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .wasteRows,
+  .recentList {
+    grid-template-rows: none;
+  }
+
+  .wasteRow {
+    grid-template-columns: 1fr;
+  }
+
+  .itemPrice,
+  .qtyDisplay,
+  .rowTotal,
+  .qtyBtn {
+    height: 58px;
+  }
+
+  .actions,
+  .editGrid,
+  .editActions {
+    grid-template-columns: 1fr;
+  }
+
+  .monthPanel,
+  .reportPanel {
+    overflow: visible;
+  }
+
+  .monthGrid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: none;
+  }
+
+  .reportPanel {
+    grid-template-rows: auto;
+  }
+}
+
+
+
+/* Samsung Galaxy Tab A9+ 11-inch landscape kiosk preview: 960 x 600 CSS px */
+@media (orientation: landscape) and (max-width: 1100px) and (max-height: 650px) {
+  .app {
+    padding: 8px;
+    overflow: hidden;
+  }
+
+  .kiosk {
+    height: calc(100dvh - 16px);
+    max-width: 1000px;
+    grid-template-rows: 50px 62px minmax(0, 1fr) 52px;
+    gap: 7px;
+  }
+
+  .header {
+    border-radius: 17px;
+    padding: 7px 11px;
+  }
+
+  .brand,
+  .headerMeta {
+    gap: 8px;
+  }
+
+  .brandIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+
+  .brand p,
+  .headerMeta p {
+    font-size: 8px;
+    letter-spacing: 0.08em;
+  }
+
+  .brand h1 {
+    font-size: 22px;
+  }
+
+  .managerBtn {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+
+  .topStats {
+    grid-template-columns: 1.25fr 0.9fr 0.9fr;
+    gap: 7px;
+  }
+
+  .totalPanel,
+  .smallStat {
+    border-radius: 17px;
+    padding: 8px 10px;
+  }
+
+  .totalPanel p,
+  .smallStat p,
+  .managerStats p {
+    font-size: 8px;
+    letter-spacing: 0.08em;
+  }
+
+  .totalPanel strong,
+  .smallStat strong {
+    margin-top: 4px;
+    font-size: 21px;
+  }
+
+  .totalPanel span,
+  .smallStat span {
+    margin-top: 3px;
+    font-size: 9px;
+  }
+
+  .mainArea {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) 190px;
+    gap: 7px;
+  }
+
+  .entryArea,
+  .recentArea {
+    border-radius: 17px;
+    padding: 8px;
+    gap: 7px;
+  }
+
+  .entryArea {
+    grid-template-rows: 42px minmax(0, 1fr);
+  }
+
+  .sectionTitle h2 {
+    font-size: 18px;
+  }
+
+  .sectionTitle p {
+    display: none;
+  }
+
+  .saveStatus {
+    padding: 7px 10px;
+    font-size: 10px;
+  }
+
+  .wasteRows {
+    gap: 6px;
+  }
+
+  .wasteRow {
+    grid-template-columns: 1fr 0.52fr 48px 0.46fr 48px 0.58fr;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 15px;
+  }
+
+  .itemName span {
+    margin-bottom: 3px;
+    padding: 3px 7px;
+    font-size: 7px;
+  }
+
+  .itemName strong {
+    font-size: 17px;
+  }
+
+  .itemPrice,
+  .qtyDisplay,
+  .rowTotal,
+  .qtyBtn {
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .itemPrice p,
+  .qtyDisplay p,
+  .rowTotal p {
+    margin-bottom: 2px;
+    font-size: 7px;
+  }
+
+  .itemPrice strong,
+  .rowTotal strong {
+    font-size: 13px;
+  }
+
+  .qtyDisplay strong {
+    font-size: 23px;
+  }
+
+  .qtyBtn {
+    font-size: 24px;
+  }
+
+  .recentArea {
+    grid-template-rows: 42px minmax(0, 1fr);
+  }
+
+  .recentArea .sectionTitle p {
+    display: block;
+  }
+
+  .recentList {
+    gap: 6px;
+  }
+
+  .recentCard {
+    border-radius: 13px;
+    padding: 7px;
+  }
+
+  .recentCard strong {
+    font-size: 12px;
+  }
+
+  .recentCard p {
+    font-size: 9px;
+  }
+
+  .recentCard span {
+    font-size: 13px;
+  }
+
+  .emptyState strong {
+    font-size: 13px;
+  }
+
+  .emptyState p {
+    font-size: 10px;
+  }
+
+  .actions {
+    grid-template-columns: 155px 1fr;
+    gap: 7px;
+    border-radius: 17px;
+    padding: 7px;
+  }
+
+  .clearBtn,
+  .submitBtn {
+    border-radius: 14px;
+    font-size: 14px;
+  }
+
+  .savedToast {
+    right: 12px;
+    bottom: 12px;
+    min-width: 220px;
+    border-radius: 16px;
+    padding: 12px 14px;
+  }
+
+  .savedToast strong {
+    font-size: 17px;
+  }
+
+  .savedToast span {
+    font-size: 11px;
+  }
+
+  .managerShell {
+    height: calc(100dvh - 16px);
+    max-width: 1000px;
+    grid-template-rows: 56px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .managerTop {
+    border-radius: 17px;
+    padding: 8px 12px;
+  }
+
+  .managerTop p {
+    font-size: 8px;
+  }
+
+  .managerTop h1 {
+    font-size: 23px;
+  }
+
+  .managerTop span {
+    font-size: 10px;
+  }
+
+  .managerTop button {
+    height: 34px;
+    border-radius: 12px;
+    padding: 0 13px;
+    font-size: 12px;
+  }
+
+  .managerWorkspace {
+    min-height: 0;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .monthPanel,
+  .reportPanel {
+    border-radius: 17px;
+    padding: 8px;
+  }
+
+  .monthPanel {
+    grid-template-rows: 56px 76px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .yearCard {
+    border-radius: 14px;
+    padding: 6px;
+    grid-template-columns: 42px 1fr 42px;
+    gap: 6px;
+  }
+
+  .yearCard button {
+    height: 42px;
+    border-radius: 12px;
+    font-size: 21px;
+  }
+
+  .yearCard p {
+    font-size: 7px;
+  }
+
+  .yearCard strong {
+    font-size: 23px;
+  }
+
+  .exportButtons {
+    gap: 7px;
+  }
+
+  .annualButton,
+  .twoYearButton {
+    height: 34px;
+    border-radius: 13px;
+    font-size: 11px;
+  }
+
+  .monthGrid {
+    gap: 6px;
+  }
+
+  .monthTile {
+    border-radius: 13px;
+    padding: 8px;
+  }
+
+  .monthTile span {
+    width: 26px;
+    height: 26px;
+    border-radius: 9px;
+    font-size: 10px;
+  }
+
+  .monthTile strong {
+    font-size: 16px;
+  }
+
+  .reportPanel {
+    grid-template-rows: 66px 70px 46px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .emptyReport {
+    border-radius: 17px;
+  }
+
+  .emptyReport h2 {
+    font-size: 24px;
+  }
+
+  .emptyReport p {
+    font-size: 12px;
+  }
+
+  .reportHeader {
+    border-radius: 14px;
+    padding: 8px 10px;
+  }
+
+  .reportHeader p {
+    font-size: 8px;
+  }
+
+  .reportHeader h2 {
+    font-size: 20px;
+  }
+
+  .reportHeader span {
+    font-size: 10px;
+  }
+
+  .reportHeader button {
+    height: 34px;
+    border-radius: 12px;
+    padding: 0 13px;
+    font-size: 11px;
+  }
+
+  .managerStats {
+    gap: 7px;
+  }
+
+  .managerStats div {
+    border-radius: 14px;
+    padding: 8px;
+  }
+
+  .managerStats strong {
+    margin-top: 4px;
+    font-size: 19px;
+  }
+
+  .managerStats span {
+    margin-top: 3px;
+    font-size: 9px;
+  }
+
+  .insightStrip div {
+    border-radius: 14px;
+    padding: 8px 10px;
+  }
+
+  .insightStrip p {
+    font-size: 8px;
+  }
+
+  .insightStrip strong {
+    margin-top: 3px;
+    font-size: 15px;
+  }
+
+  .reportGrid {
+    min-height: 0;
+    gap: 7px;
+  }
+
+  .reportCard {
+    border-radius: 14px;
+    padding: 9px;
+  }
+
+  .reportCard h3 {
+    margin-bottom: 6px;
+    font-size: 17px;
+  }
+
+  th {
+    font-size: 8px;
+    padding-bottom: 5px;
+  }
+
+  td {
+    padding: 6px 0;
+    font-size: 12px;
+  }
+
+  .entryList {
+    max-height: calc(100% - 28px);
+    gap: 6px;
+  }
+
+  .entryRow {
+    border-radius: 13px;
+    padding: 7px;
+  }
+
+  .entryRow strong {
+    font-size: 12px;
+  }
+
+  .entryRow p {
+    font-size: 9px;
+  }
+
+  .entryActions span {
+    font-size: 13px;
+  }
+
+  .entryActions button {
+    height: 28px;
+    border-radius: 10px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .pinCard {
+    padding: 18px;
+  }
+
+  .pinBadge {
+    width: 46px;
+    height: 46px;
+  }
+
+  .pinCard h1 {
+    font-size: 27px;
+  }
+
+  .pinCard input {
+    height: 46px;
+  }
+
+  .pinCard button {
+    height: 42px;
+  }
+}
+
+/* Slightly larger tap targets for Galaxy Tab A9+ landscape kiosk preview */
+@media (min-width: 901px) and (max-width: 1050px) and (max-height: 700px) {
+  .wasteRow {
+    grid-template-columns: 0.95fr 0.5fr 52px 0.42fr 52px 0.55fr;
+  }
+
+  .itemPrice,
+  .qtyDisplay,
+  .rowTotal,
+  .qtyBtn {
+    height: 44px;
+  }
+
+  .qtyBtn {
+    font-size: 27px;
+    border-radius: 13px;
+  }
+
+  .clearBtn,
+  .submitBtn {
+    min-height: 50px;
+    font-size: 15px;
+  }
+
+  .managerBtn,
+  .managerTop button,
+  .reportHeader button,
+  .annualButton,
+  .twoYearButton,
+  .entryActions button {
+    min-height: 42px;
+  }
+
+  .monthTile {
+    min-height: 58px;
+  }
+}
+
+
+/* Summary screen polish for 960x600 Galaxy Tab A9+ landscape kiosk */
+@media (min-width: 901px) and (max-width: 1050px) and (max-height: 700px) {
+  .managerShell {
+    grid-template-rows: 52px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .managerTop {
+    padding: 7px 11px;
+  }
+
+  .managerTop h1 {
+    font-size: 22px;
+  }
+
+  .managerTop button {
+    min-width: 116px;
+    min-height: 42px;
+    font-size: 12px;
+  }
+
+  .managerWorkspace {
+    grid-template-columns: 286px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .monthPanel,
+  .reportPanel {
+    padding: 7px;
+  }
+
+  .monthPanel {
+    grid-template-rows: 54px 48px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .yearCard {
+    grid-template-columns: 44px 1fr 44px;
+  }
+
+  .yearCard button {
+    min-height: 42px;
+  }
+
+  .exportButtons {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 6px;
+  }
+
+  .annualButton,
+  .twoYearButton {
+    min-height: 42px;
+    height: 42px;
+    padding: 0 8px;
+    font-size: 10px;
+    line-height: 1.05;
+  }
+
+  .monthGrid {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .monthTile {
+    min-height: 62px;
+    padding: 7px;
+    border-radius: 14px;
+  }
+
+  .monthTile span {
+    width: 27px;
+    height: 27px;
+  }
+
+  .monthTile strong {
+    font-size: 15px;
+  }
+
+  .reportPanel {
+    grid-template-rows: 64px 74px 0 minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .insightStrip {
+    display: none;
+  }
+
+  .reportHeader {
+    padding: 7px 9px;
+    gap: 8px;
+  }
+
+  .reportHeader h2 {
+    font-size: 19px;
+  }
+
+  .reportHeader span {
+    font-size: 9px;
+  }
+
+  .reportHeader button {
+    min-width: 142px;
+    min-height: 42px;
+    padding: 0 10px;
+    font-size: 10px;
+    line-height: 1.05;
+  }
+
+  .managerStats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .managerStats div {
+    padding: 7px;
+    border-radius: 14px;
+  }
+
+  .managerStats p {
+    font-size: 7px;
+    letter-spacing: 0.06em;
+  }
+
+  .managerStats strong {
+    font-size: 18px;
+  }
+
+  .managerStats span {
+    font-size: 8px;
+    line-height: 1.05;
+  }
+
+  .reportGrid {
+    grid-template-columns: 0.82fr 1.18fr;
+    gap: 6px;
+  }
+
+  .reportCard {
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .reportCard h3 {
+    font-size: 16px;
+    margin-bottom: 5px;
+  }
+
+  th {
+    font-size: 7px;
+    padding-bottom: 4px;
+  }
+
+  td {
+    padding: 5px 0;
+    font-size: 11px;
+  }
+
+  .entryList {
+    max-height: calc(100% - 24px);
+    gap: 5px;
+    padding-right: 2px;
+  }
+
+  .entryRow {
+    min-height: 46px;
+    padding: 6px;
+    border-radius: 13px;
+  }
+
+  .entryRow strong {
+    font-size: 12px;
+  }
+
+  .entryRow p {
+    font-size: 8px;
+  }
+
+  .entryActions {
+    gap: 6px;
+  }
+
+  .entryActions span {
+    font-size: 12px;
+  }
+
+  .entryActions button {
+    min-width: 54px;
+    min-height: 38px;
+    padding: 0 9px;
+    font-size: 11px;
+  }
+}
