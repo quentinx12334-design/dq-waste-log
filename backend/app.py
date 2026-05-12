@@ -100,13 +100,19 @@ def format_money(value):
     return f"${float(value or 0):.2f}"
 
 
+def short_time(parsed):
+    hour = parsed.hour % 12 or 12
+    suffix = "a" if parsed.hour < 12 else "p"
+    return f"{hour}:{parsed.minute:02d}{suffix}"
+
+
 def format_report_datetime(value):
     if not value:
         return ""
 
     try:
         parsed = datetime.fromisoformat(str(value))
-        return parsed.strftime("%m/%d/%Y %I:%M %p")
+        return f"{parsed.month}/{parsed.day} {short_time(parsed)}"
     except ValueError:
         return str(value)
 
@@ -117,9 +123,20 @@ def format_report_date(value):
 
     try:
         parsed = datetime.fromisoformat(str(value))
-        return parsed.strftime("%m/%d/%Y")
+        return f"{parsed.month}/{parsed.day}/{str(parsed.year)[-2:]}"
     except ValueError:
         return str(value)
+
+
+def format_report_time(value):
+    if not value:
+        return ""
+
+    try:
+        parsed = datetime.fromisoformat(str(value))
+        return short_time(parsed)
+    except ValueError:
+        return ""
 
 
 def build_item_lookup(item_rows):
@@ -127,17 +144,17 @@ def build_item_lookup(item_rows):
 
 
 def write_report_header(writer, title, subtitle, report_range, total_quantity, total_cost, row_count):
-    generated_at = datetime.now().strftime("%m/%d/%Y %I:%M %p")
+    generated_at = format_report_datetime(datetime.now().isoformat(timespec="minutes"))
 
     writer.writerow([title])
     writer.writerow([subtitle])
     writer.writerow([])
-    writer.writerow(["Report Range", report_range])
+    writer.writerow(["Range", report_range])
     writer.writerow(["Generated", generated_at])
-    writer.writerow(["Retention Requirement", f"{RETENTION_YEARS} years minimum"])
+    writer.writerow(["Keep For", f"{RETENTION_YEARS} yrs"])
     writer.writerow([])
     writer.writerow(["SUMMARY"])
-    writer.writerow(["Total Items Wasted", "Total Estimated Loss", "Saved Rows"])
+    writer.writerow(["Items", "Loss", "Records"])
     writer.writerow([total_quantity or 0, format_money(total_cost), row_count or 0])
     writer.writerow([])
 
@@ -150,8 +167,8 @@ def write_section_title(writer, title):
 def write_item_breakdown(writer, item_rows):
     item_lookup = build_item_lookup(item_rows)
 
-    write_section_title(writer, "ITEM BREAKDOWN")
-    writer.writerow(["Item", "Category", "Quantity", "Cost Per Item", "Estimated Loss"])
+    write_section_title(writer, "ITEMS")
+    writer.writerow(["Item", "Category", "Qty", "Each", "Loss"])
 
     for item_name, price in ITEM_PRICES.items():
         row = item_lookup.get(item_name)
@@ -168,11 +185,11 @@ def write_item_breakdown(writer, item_rows):
 
 
 def write_daily_totals(writer, daily_rows):
-    write_section_title(writer, "DAILY TOTALS")
-    writer.writerow(["Date", "Total Items", "Estimated Loss", "Rows Saved"])
+    write_section_title(writer, "DAYS")
+    writer.writerow(["Date", "Items", "Loss", "Records"])
 
     if not daily_rows:
-        writer.writerow(["No waste logged", 0, format_money(0), 0])
+        writer.writerow(["None", 0, format_money(0), 0])
         return
 
     for row in daily_rows:
@@ -185,11 +202,11 @@ def write_daily_totals(writer, daily_rows):
 
 
 def write_monthly_totals(writer, monthly_rows):
-    write_section_title(writer, "MONTHLY TOTALS")
-    writer.writerow(["Month", "Total Items", "Estimated Loss", "Rows Saved"])
+    write_section_title(writer, "MONTHS")
+    writer.writerow(["Month", "Items", "Loss", "Records"])
 
     if not monthly_rows:
-        writer.writerow(["No waste logged", 0, format_money(0), 0])
+        writer.writerow(["None", 0, format_money(0), 0])
         return
 
     for row in monthly_rows:
@@ -202,11 +219,11 @@ def write_monthly_totals(writer, monthly_rows):
 
 
 def write_yearly_totals(writer, yearly_rows):
-    write_section_title(writer, "YEARLY TOTALS")
-    writer.writerow(["Year", "Total Items", "Estimated Loss", "Rows Saved"])
+    write_section_title(writer, "YEARS")
+    writer.writerow(["Year", "Items", "Loss", "Records"])
 
     if not yearly_rows:
-        writer.writerow(["No waste logged", 0, format_money(0), 0])
+        writer.writerow(["None", 0, format_money(0), 0])
         return
 
     for row in yearly_rows:
@@ -219,26 +236,27 @@ def write_yearly_totals(writer, yearly_rows):
 
 
 def write_entry_history(writer, entry_rows):
-    write_section_title(writer, "FULL ENTRY HISTORY")
+    write_section_title(writer, "ENTRIES")
     writer.writerow([
         "Entry ID",
-        "Date/Time",
+        "Date", "Time",
         "Item",
-        "Quantity",
-        "Cost Per Item",
-        "Estimated Loss",
-        "Employee",
+        "Qty",
+        "Each",
+        "Loss",
+        "Emp",
         "Note",
     ])
 
     if not entry_rows:
-        writer.writerow(["No saved entries", "", "", 0, format_money(0), format_money(0), "", ""])
+        writer.writerow(["No saved entries", "", "", "", 0, format_money(0), format_money(0), "", ""])
         return
 
     for row in entry_rows:
         writer.writerow([
             row["id"],
-            format_report_datetime(row["created_at"]),
+            format_report_date(row["created_at"]),
+            format_report_time(row["created_at"]),
             row["item_name"],
             row["quantity"],
             format_money(row["cost_per_item"]),
@@ -762,8 +780,8 @@ def export_month_csv():
 
     write_report_header(
         writer,
-        "DQ WASTE LOG REPORT",
-        "Monthly Waste Summary",
+        "DQ WASTE REPORT",
+        "Month Summary",
         month,
         total_row["quantity"],
         total_row["total_cost"],
@@ -776,7 +794,7 @@ def export_month_csv():
     csv_data = output.getvalue()
     output.close()
 
-    return make_report_response(csv_data, f"DQ_Waste_Report_{month}.csv")
+    return make_report_response(csv_data, f"DQ_Waste_{month}.csv")
 
 
 @app.route("/api/export/year", methods=["GET"])
@@ -856,8 +874,8 @@ def export_year_csv():
 
     write_report_header(
         writer,
-        "DQ ANNUAL WASTE REPORT",
-        "Yearly Waste Summary",
+        "DQ YEAR REPORT",
+        "Year Summary",
         str(year),
         yearly_total["quantity"],
         yearly_total["total_cost"],
@@ -871,7 +889,7 @@ def export_year_csv():
     csv_data = output.getvalue()
     output.close()
 
-    return make_report_response(csv_data, f"DQ_Annual_Waste_Report_{year}.csv")
+    return make_report_response(csv_data, f"DQ_Waste_{year}.csv")
 
 
 @app.route("/api/export/two-years", methods=["GET"])
@@ -973,7 +991,7 @@ def export_two_year_csv():
     csv_data = output.getvalue()
     output.close()
 
-    return make_report_response(csv_data, "DQ_2_Year_Waste_Report.csv")
+    return make_report_response(csv_data, "DQ_Waste_2Year.csv")
 
 
 @app.route("/api/entries/cleanup", methods=["POST"])
