@@ -1697,3 +1697,41 @@ td {
     height: 42px;
   }
 }
+
+/* Slightly larger tap targets for Galaxy Tab A9+ landscape kiosk preview */
+@media (min-width: 901px) and (max-width: 1050px) and (max-height: 700px) {
+  .wasteRow {
+    grid-template-columns: 0.95fr 0.5fr 52px 0.42fr 52px 0.55fr;
+  }
+
+  .itemPrice,
+  .qtyDisplay,
+  .rowTotal,
+  .qtyBtn {
+    height: 44px;
+  }
+
+  .qtyBtn {
+    font-size: 27px;
+    border-radius: 13px;
+  }
+
+  .clearBtn,
+  .submitBtn {
+    min-height: 50px;
+    font-size: 15px;
+  }
+
+  .managerBtn,
+  .managerTop button,
+  .reportHeader button,
+  .annualButton,
+  .twoYearButton,
+  .entryActions button {
+    min-height: 42px;
+  }
+
+  .monthTile {
+    min-height: 58px;
+  }
+}
