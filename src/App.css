@@ -1223,3 +1223,477 @@ td {
   }
 }
 
+
+
+/* Samsung Galaxy Tab A9+ 11-inch landscape kiosk preview: 960 x 600 CSS px */
+@media (orientation: landscape) and (max-width: 1100px) and (max-height: 650px) {
+  .app {
+    padding: 8px;
+    overflow: hidden;
+  }
+
+  .kiosk {
+    height: calc(100dvh - 16px);
+    max-width: 1000px;
+    grid-template-rows: 50px 62px minmax(0, 1fr) 52px;
+    gap: 7px;
+  }
+
+  .header {
+    border-radius: 17px;
+    padding: 7px 11px;
+  }
+
+  .brand,
+  .headerMeta {
+    gap: 8px;
+  }
+
+  .brandIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+
+  .brand p,
+  .headerMeta p {
+    font-size: 8px;
+    letter-spacing: 0.08em;
+  }
+
+  .brand h1 {
+    font-size: 22px;
+  }
+
+  .managerBtn {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+
+  .topStats {
+    grid-template-columns: 1.25fr 0.9fr 0.9fr;
+    gap: 7px;
+  }
+
+  .totalPanel,
+  .smallStat {
+    border-radius: 17px;
+    padding: 8px 10px;
+  }
+
+  .totalPanel p,
+  .smallStat p,
+  .managerStats p {
+    font-size: 8px;
+    letter-spacing: 0.08em;
+  }
+
+  .totalPanel strong,
+  .smallStat strong {
+    margin-top: 4px;
+    font-size: 21px;
+  }
+
+  .totalPanel span,
+  .smallStat span {
+    margin-top: 3px;
+    font-size: 9px;
+  }
+
+  .mainArea {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) 190px;
+    gap: 7px;
+  }
+
+  .entryArea,
+  .recentArea {
+    border-radius: 17px;
+    padding: 8px;
+    gap: 7px;
+  }
+
+  .entryArea {
+    grid-template-rows: 42px minmax(0, 1fr);
+  }
+
+  .sectionTitle h2 {
+    font-size: 18px;
+  }
+
+  .sectionTitle p {
+    display: none;
+  }
+
+  .saveStatus {
+    padding: 7px 10px;
+    font-size: 10px;
+  }
+
+  .wasteRows {
+    gap: 6px;
+  }
+
+  .wasteRow {
+    grid-template-columns: 1fr 0.52fr 48px 0.46fr 48px 0.58fr;
+    gap: 6px;
+    padding: 6px;
+    border-radius: 15px;
+  }
+
+  .itemName span {
+    margin-bottom: 3px;
+    padding: 3px 7px;
+    font-size: 7px;
+  }
+
+  .itemName strong {
+    font-size: 17px;
+  }
+
+  .itemPrice,
+  .qtyDisplay,
+  .rowTotal,
+  .qtyBtn {
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .itemPrice p,
+  .qtyDisplay p,
+  .rowTotal p {
+    margin-bottom: 2px;
+    font-size: 7px;
+  }
+
+  .itemPrice strong,
+  .rowTotal strong {
+    font-size: 13px;
+  }
+
+  .qtyDisplay strong {
+    font-size: 23px;
+  }
+
+  .qtyBtn {
+    font-size: 24px;
+  }
+
+  .recentArea {
+    grid-template-rows: 42px minmax(0, 1fr);
+  }
+
+  .recentArea .sectionTitle p {
+    display: block;
+  }
+
+  .recentList {
+    gap: 6px;
+  }
+
+  .recentCard {
+    border-radius: 13px;
+    padding: 7px;
+  }
+
+  .recentCard strong {
+    font-size: 12px;
+  }
+
+  .recentCard p {
+    font-size: 9px;
+  }
+
+  .recentCard span {
+    font-size: 13px;
+  }
+
+  .emptyState strong {
+    font-size: 13px;
+  }
+
+  .emptyState p {
+    font-size: 10px;
+  }
+
+  .actions {
+    grid-template-columns: 155px 1fr;
+    gap: 7px;
+    border-radius: 17px;
+    padding: 7px;
+  }
+
+  .clearBtn,
+  .submitBtn {
+    border-radius: 14px;
+    font-size: 14px;
+  }
+
+  .savedToast {
+    right: 12px;
+    bottom: 12px;
+    min-width: 220px;
+    border-radius: 16px;
+    padding: 12px 14px;
+  }
+
+  .savedToast strong {
+    font-size: 17px;
+  }
+
+  .savedToast span {
+    font-size: 11px;
+  }
+
+  .managerShell {
+    height: calc(100dvh - 16px);
+    max-width: 1000px;
+    grid-template-rows: 56px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .managerTop {
+    border-radius: 17px;
+    padding: 8px 12px;
+  }
+
+  .managerTop p {
+    font-size: 8px;
+  }
+
+  .managerTop h1 {
+    font-size: 23px;
+  }
+
+  .managerTop span {
+    font-size: 10px;
+  }
+
+  .managerTop button {
+    height: 34px;
+    border-radius: 12px;
+    padding: 0 13px;
+    font-size: 12px;
+  }
+
+  .managerWorkspace {
+    min-height: 0;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .monthPanel,
+  .reportPanel {
+    border-radius: 17px;
+    padding: 8px;
+  }
+
+  .monthPanel {
+    grid-template-rows: 56px 76px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .yearCard {
+    border-radius: 14px;
+    padding: 6px;
+    grid-template-columns: 42px 1fr 42px;
+    gap: 6px;
+  }
+
+  .yearCard button {
+    height: 42px;
+    border-radius: 12px;
+    font-size: 21px;
+  }
+
+  .yearCard p {
+    font-size: 7px;
+  }
+
+  .yearCard strong {
+    font-size: 23px;
+  }
+
+  .exportButtons {
+    gap: 7px;
+  }
+
+  .annualButton,
+  .twoYearButton {
+    height: 34px;
+    border-radius: 13px;
+    font-size: 11px;
+  }
+
+  .monthGrid {
+    gap: 6px;
+  }
+
+  .monthTile {
+    border-radius: 13px;
+    padding: 8px;
+  }
+
+  .monthTile span {
+    width: 26px;
+    height: 26px;
+    border-radius: 9px;
+    font-size: 10px;
+  }
+
+  .monthTile strong {
+    font-size: 16px;
+  }
+
+  .reportPanel {
+    grid-template-rows: 66px 70px 46px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .emptyReport {
+    border-radius: 17px;
+  }
+
+  .emptyReport h2 {
+    font-size: 24px;
+  }
+
+  .emptyReport p {
+    font-size: 12px;
+  }
+
+  .reportHeader {
+    border-radius: 14px;
+    padding: 8px 10px;
+  }
+
+  .reportHeader p {
+    font-size: 8px;
+  }
+
+  .reportHeader h2 {
+    font-size: 20px;
+  }
+
+  .reportHeader span {
+    font-size: 10px;
+  }
+
+  .reportHeader button {
+    height: 34px;
+    border-radius: 12px;
+    padding: 0 13px;
+    font-size: 11px;
+  }
+
+  .managerStats {
+    gap: 7px;
+  }
+
+  .managerStats div {
+    border-radius: 14px;
+    padding: 8px;
+  }
+
+  .managerStats strong {
+    margin-top: 4px;
+    font-size: 19px;
+  }
+
+  .managerStats span {
+    margin-top: 3px;
+    font-size: 9px;
+  }
+
+  .insightStrip div {
+    border-radius: 14px;
+    padding: 8px 10px;
+  }
+
+  .insightStrip p {
+    font-size: 8px;
+  }
+
+  .insightStrip strong {
+    margin-top: 3px;
+    font-size: 15px;
+  }
+
+  .reportGrid {
+    min-height: 0;
+    gap: 7px;
+  }
+
+  .reportCard {
+    border-radius: 14px;
+    padding: 9px;
+  }
+
+  .reportCard h3 {
+    margin-bottom: 6px;
+    font-size: 17px;
+  }
+
+  th {
+    font-size: 8px;
+    padding-bottom: 5px;
+  }
+
+  td {
+    padding: 6px 0;
+    font-size: 12px;
+  }
+
+  .entryList {
+    max-height: calc(100% - 28px);
+    gap: 6px;
+  }
+
+  .entryRow {
+    border-radius: 13px;
+    padding: 7px;
+  }
+
+  .entryRow strong {
+    font-size: 12px;
+  }
+
+  .entryRow p {
+    font-size: 9px;
+  }
+
+  .entryActions span {
+    font-size: 13px;
+  }
+
+  .entryActions button {
+    height: 28px;
+    border-radius: 10px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .pinCard {
+    padding: 18px;
+  }
+
+  .pinBadge {
+    width: 46px;
+    height: 46px;
+  }
+
+  .pinCard h1 {
+    font-size: 27px;
+  }
+
+  .pinCard input {
+    height: 46px;
+  }
+
+  .pinCard button {
+    height: 42px;
+  }
+}
