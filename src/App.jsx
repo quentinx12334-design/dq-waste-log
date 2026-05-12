@@ -75,7 +75,9 @@ function App() {
   const todayWaste =
     (summary?.period === "today" ? summary.total_cost : 0) + currentTotal
 
-  const isOverGoal = todayWaste >= 5
+  const dailyGoal = 5
+  const goalDifference = Math.abs(dailyGoal - todayWaste)
+  const isOverGoal = todayWaste > dailyGoal
 
   const topMonthItem = useMemo(() => {
     if (!monthSummary?.items?.length) return null
@@ -747,10 +749,12 @@ function App() {
 
         <section className="topStats">
           <div className={isOverGoal ? "totalPanel warning" : "totalPanel"}>
-            <p>Today’s Total</p>
-            <strong>${todayWaste.toFixed(2)}</strong>
-            <span>
-              {isOverGoal ? "Above daily target" : "Within daily target"}
+            <p>Daily Waste Goal</p>
+            <strong>$5.00</strong>
+            <span className={isOverGoal ? "goalStatus over" : "goalStatus under"}>
+              {isOverGoal
+                ? `$${goalDifference.toFixed(2)} over goal today`
+                : `$${goalDifference.toFixed(2)} under goal today`}
             </span>
           </div>
 
