@@ -1735,3 +1735,199 @@ td {
     min-height: 58px;
   }
 }
+
+
+/* Summary screen polish for 960x600 Galaxy Tab A9+ landscape kiosk */
+@media (min-width: 901px) and (max-width: 1050px) and (max-height: 700px) {
+  .managerShell {
+    grid-template-rows: 52px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .managerTop {
+    padding: 7px 11px;
+  }
+
+  .managerTop h1 {
+    font-size: 22px;
+  }
+
+  .managerTop button {
+    min-width: 116px;
+    min-height: 42px;
+    font-size: 12px;
+  }
+
+  .managerWorkspace {
+    grid-template-columns: 286px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .monthPanel,
+  .reportPanel {
+    padding: 7px;
+  }
+
+  .monthPanel {
+    grid-template-rows: 54px 48px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .yearCard {
+    grid-template-columns: 44px 1fr 44px;
+  }
+
+  .yearCard button {
+    min-height: 42px;
+  }
+
+  .exportButtons {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 6px;
+  }
+
+  .annualButton,
+  .twoYearButton {
+    min-height: 42px;
+    height: 42px;
+    padding: 0 8px;
+    font-size: 10px;
+    line-height: 1.05;
+  }
+
+  .monthGrid {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .monthTile {
+    min-height: 62px;
+    padding: 7px;
+    border-radius: 14px;
+  }
+
+  .monthTile span {
+    width: 27px;
+    height: 27px;
+  }
+
+  .monthTile strong {
+    font-size: 15px;
+  }
+
+  .reportPanel {
+    grid-template-rows: 64px 74px 0 minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .insightStrip {
+    display: none;
+  }
+
+  .reportHeader {
+    padding: 7px 9px;
+    gap: 8px;
+  }
+
+  .reportHeader h2 {
+    font-size: 19px;
+  }
+
+  .reportHeader span {
+    font-size: 9px;
+  }
+
+  .reportHeader button {
+    min-width: 142px;
+    min-height: 42px;
+    padding: 0 10px;
+    font-size: 10px;
+    line-height: 1.05;
+  }
+
+  .managerStats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .managerStats div {
+    padding: 7px;
+    border-radius: 14px;
+  }
+
+  .managerStats p {
+    font-size: 7px;
+    letter-spacing: 0.06em;
+  }
+
+  .managerStats strong {
+    font-size: 18px;
+  }
+
+  .managerStats span {
+    font-size: 8px;
+    line-height: 1.05;
+  }
+
+  .reportGrid {
+    grid-template-columns: 0.82fr 1.18fr;
+    gap: 6px;
+  }
+
+  .reportCard {
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .reportCard h3 {
+    font-size: 16px;
+    margin-bottom: 5px;
+  }
+
+  th {
+    font-size: 7px;
+    padding-bottom: 4px;
+  }
+
+  td {
+    padding: 5px 0;
+    font-size: 11px;
+  }
+
+  .entryList {
+    max-height: calc(100% - 24px);
+    gap: 5px;
+    padding-right: 2px;
+  }
+
+  .entryRow {
+    min-height: 46px;
+    padding: 6px;
+    border-radius: 13px;
+  }
+
+  .entryRow strong {
+    font-size: 12px;
+  }
+
+  .entryRow p {
+    font-size: 8px;
+  }
+
+  .entryActions {
+    gap: 6px;
+  }
+
+  .entryActions span {
+    font-size: 12px;
+  }
+
+  .entryActions button {
+    min-width: 54px;
+    min-height: 38px;
+    padding: 0 9px;
+    font-size: 11px;
+  }
+}
