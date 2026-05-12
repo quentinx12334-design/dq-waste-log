@@ -2026,3 +2026,168 @@ td {
     overflow-y: auto;
   }
 }
+
+/* Finished-app polish for the 960x600 A9+ kiosk layout */
+body {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(215, 25, 32, 0.16), transparent 28%),
+    radial-gradient(circle at 92% 0%, rgba(255, 214, 90, 0.20), transparent 30%),
+    linear-gradient(135deg, #fff8ed 0%, #f7efe1 52%, #fff4e4 100%);
+}
+
+.header,
+.entryArea,
+.recentArea,
+.actions,
+.totalPanel,
+.smallStat,
+.managerTop,
+.monthPanel,
+.reportPanel,
+.yearCard,
+.annualButton,
+.twoYearButton,
+.monthTile,
+.emptyReport,
+.reportHeader,
+.managerStats div,
+.reportCard,
+.insightStrip div {
+  border-color: rgba(220, 201, 183, 0.95);
+  box-shadow:
+    0 14px 28px rgba(80, 41, 28, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.header,
+.managerTop {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 250, 242, 0.94));
+}
+
+.header::after,
+.managerTop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(215, 25, 32, 0.08), transparent 42%, rgba(255, 198, 61, 0.08));
+}
+
+.header > *,
+.managerTop > * {
+  position: relative;
+  z-index: 1;
+}
+
+.brandIcon,
+.pinBadge {
+  background:
+    linear-gradient(145deg, #f33a40, #d71920 46%, #9d0d17);
+  box-shadow:
+    0 12px 24px rgba(215, 25, 32, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30);
+}
+
+.wasteRow,
+.recentCard,
+.entryRow {
+  background:
+    linear-gradient(135deg, #ffffff 0%, #fffaf2 68%, #fff3df 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+.itemPrice,
+.qtyDisplay,
+.rowTotal {
+  background: linear-gradient(180deg, #ffffff, #fffaf2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+}
+
+.plus,
+.submitBtn,
+.reportHeader button,
+.twoYearButton,
+.saveEditBtn,
+.pinCard button,
+.activeMonthTile {
+  background:
+    linear-gradient(145deg, #ff4046, #d71920 48%, #a90f18);
+  box-shadow:
+    0 10px 20px rgba(215, 25, 32, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.minus,
+.managerBtn,
+.managerTop button,
+.yearCard button,
+.entryActions button,
+.annualButton {
+  background:
+    linear-gradient(145deg, #332623, #211816 55%, #0f0b0a);
+  box-shadow:
+    0 8px 16px rgba(33, 24, 22, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.clearBtn,
+.cancelEditBtn,
+.pinCard .pinCancel {
+  background: linear-gradient(180deg, #ffffff, #fff8ed);
+}
+
+.saveStatus {
+  border: 1px solid rgba(215, 25, 32, 0.14);
+  background: linear-gradient(135deg, #fff6f6, #fff0f1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.totalPanel {
+  background: linear-gradient(135deg, #e9fff1, #ffffff 58%, #fffaf2);
+}
+
+.totalPanel.warning {
+  background: linear-gradient(135deg, #fff0f1, #ffffff 58%, #fff7ec);
+}
+
+.monthTile {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.monthTile:hover,
+.qtyBtn:hover,
+.submitBtn:hover,
+.managerBtn:hover,
+.reportHeader button:hover,
+.annualButton:hover,
+.twoYearButton:hover {
+  filter: brightness(1.02);
+}
+
+.monthTile:active,
+.qtyBtn:active,
+.submitBtn:active,
+.clearBtn:active,
+.managerBtn:active,
+.reportHeader button:active,
+.entryActions button:active {
+  transform: scale(0.975);
+}
+
+.reportPanel,
+.monthPanel,
+.entryArea,
+.recentArea {
+  backdrop-filter: blur(8px);
+}
+
+.reportCard h3,
+.sectionTitle h2,
+.reportHeader h2,
+.managerTop h1,
+.brand h1 {
+  text-wrap: balance;
+}
