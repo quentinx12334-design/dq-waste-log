@@ -239,7 +239,7 @@ function App() {
 
       await saveSubmittedEntry(data)
     } catch {
-      setMessage("Waiting for entry")
+      setMessage("Connection issue — try again")
     } finally {
       setLoading(false)
     }
@@ -296,7 +296,7 @@ function App() {
         await loadMonthReport(selectedMonth)
       }
     } catch {
-      setManagerMessage("Entry")
+      setManagerMessage("Connection issue — try again")
     }
   }
 
@@ -328,7 +328,7 @@ function App() {
         await loadMonthReport(selectedMonth)
       }
     } catch {
-      setManagerMessage("Ready for closing waste count")
+      setManagerMessage("Connection issue — try again")
     }
   }
 
@@ -387,10 +387,10 @@ function App() {
           <div className="pinCard">
             <div className="pinBadge">DQ</div>
 
-            <p>Manager Access</p>
+            <p>Summary Access</p>
             <h1>Enter PIN</h1>
 
-            <span>Reports, exports, edits, and delete controls.</span>
+            <span>Summary reports, exports, edits, and delete controls.</span>
 
             <form onSubmit={unlockManager}>
               <input
@@ -410,7 +410,7 @@ function App() {
                 <strong className="pinError">{managerError}</strong>
               )}
 
-              <button type="submit">Unlock Dashboard</button>
+              <button type="submit">Unlock Summary</button>
 
               <button
                 className="pinCancel"
@@ -432,7 +432,7 @@ function App() {
         <section className="managerShell">
           <header className="managerTop">
             <div>
-              <p>Management Dashboard</p>
+              <p>Summary Dashboard</p>
               <h1>Waste Summary</h1>
               <span>{managerMessage}</span>
             </div>
@@ -625,7 +625,7 @@ function App() {
             <div className="editPanel">
               <div className="editHeader">
                 <div>
-                  <p>Manager Edit</p>
+                  <p>Summary Edit</p>
                   <h2>Edit Waste Entry</h2>
                   <span>Entry #{editingEntry.id}</span>
                 </div>
@@ -740,7 +740,7 @@ function App() {
             </p>
 
             <button className="managerBtn" onClick={openManagerGate}>
-              Manager
+              Summary
             </button>
           </div>
         </header>
