@@ -788,7 +788,6 @@ function App() {
                 return (
                   <article className="wasteRow" key={item.name}>
                     <div className="itemName">
-                      <span>{item.category}</span>
                       <strong>{item.name}</strong>
                     </div>
 
