@@ -39,6 +39,8 @@ const MONTHS = [
 function App() {
   const currentYear = new Date().getFullYear()
 
+  const [clockNow, setClockNow] = useState(new Date())
+
   const [view, setView] = useState("employee")
   const [counts, setCounts] = useState(EMPTY_COUNTS)
   const [message, setMessage] = useState("Ready for closing waste count")
@@ -94,6 +96,14 @@ function App() {
   useEffect(() => {
     loadRecentEntries()
     loadTodaySummary()
+  }, [])
+
+  useEffect(() => {
+    const clockTimer = window.setInterval(() => {
+      setClockNow(new Date())
+    }, 1000)
+
+    return () => window.clearInterval(clockTimer)
   }, [])
 
   async function loadRecentEntries() {
@@ -731,13 +741,21 @@ function App() {
           </div>
 
           <div className="headerMeta">
-            <p>
-              {new Date().toLocaleDateString([], {
-                weekday: "long",
-                month: "short",
-                day: "numeric",
-              })}
-            </p>
+            <div className="kioskClock" aria-label="Current time">
+              <strong>
+                {clockNow.toLocaleTimeString([], {
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+              </strong>
+              <span>
+                {clockNow.toLocaleDateString([], {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
 
             <button className="managerBtn" onClick={openManagerGate}>
               Summary
