@@ -460,6 +460,7 @@ button:disabled {
 }
 
 .managerShell {
+  position: relative;
   height: calc(100dvh - 24px);
   max-width: 1180px;
   margin: 0 auto;
@@ -468,6 +469,14 @@ button:disabled {
   gap: 10px;
   overflow: hidden;
 }
+
+
+.managerTop,
+.managerWorkspace {
+  position: relative;
+  z-index: 1;
+}
+
 
 .managerTop {
   border-radius: 22px;
@@ -1213,3 +1222,4 @@ td {
     grid-template-rows: auto;
   }
 }
+
