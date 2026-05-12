@@ -142,6 +142,38 @@ button:disabled {
   letter-spacing: -0.055em;
 }
 
+.kioskClock {
+  min-width: 148px;
+  height: 48px;
+  padding: 5px 14px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ffffff, #fff7ec);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 10px 24px rgba(80, 41, 28, 0.1);
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.kioskClock strong {
+  display: block;
+  color: var(--ink);
+  font-size: 25px;
+  line-height: 0.95;
+  font-weight: 1000;
+  letter-spacing: -0.055em;
+}
+
+.kioskClock span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .managerBtn,
 .managerTop button,
 .yearCard button,
@@ -1224,108 +1256,246 @@ td {
 }
 
 
-/* Final Summary header fix: keep the top bar compact at tablet size */
-.managerShell {
-  grid-template-rows: 48px minmax(0, 1fr) !important;
-  gap: 8px !important;
-}
-
-.managerTop {
-  min-height: 0 !important;
-  height: 48px !important;
-  padding: 6px 12px !important;
-  border-radius: 16px !important;
-  align-items: center !important;
-  overflow: hidden !important;
-}
-
-.managerTop > div {
-  min-width: 0 !important;
-  overflow: hidden !important;
-}
-
-.managerTop p {
-  margin: 0 !important;
-  font-size: 7px !important;
-  line-height: 1 !important;
-  letter-spacing: 0.11em !important;
-  white-space: nowrap !important;
-}
-
-.managerTop h1 {
-  margin: 1px 0 0 !important;
-  font-size: 17px !important;
-  line-height: 0.95 !important;
-  letter-spacing: -0.045em !important;
-  white-space: nowrap !important;
-  max-height: 18px !important;
-  overflow: hidden !important;
-}
-
-.managerTop span {
-  display: block !important;
-  margin-top: 2px !important;
-  max-width: 360px !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-  font-size: 8px !important;
-  line-height: 1 !important;
-}
-
-.managerTop button {
-  flex: 0 0 auto !important;
-  height: 32px !important;
-  padding: 0 12px !important;
-  border-radius: 11px !important;
-  font-size: 10px !important;
-  white-space: nowrap !important;
-}
-
-@media (min-width: 1100px) and (min-height: 700px) {
-  .managerShell {
-    grid-template-rows: 64px minmax(0, 1fr) !important;
-  }
-
-  .managerTop {
-    height: 64px !important;
-    padding: 10px 16px !important;
-    border-radius: 20px !important;
-  }
-
-  .managerTop p {
-    font-size: 9px !important;
-  }
-
-  .managerTop h1 {
-    font-size: 25px !important;
-    max-height: 28px !important;
-  }
-
-  .managerTop span {
-    font-size: 10px !important;
-    max-width: 620px !important;
-  }
-
-  .managerTop button {
-    height: 38px !important;
-    font-size: 12px !important;
-    padding: 0 16px !important;
-  }
-}
 
 @media (max-width: 900px) {
-  .managerShell {
-    grid-template-rows: auto !important;
+  .headerMeta {
+    width: 100%;
+    justify-content: space-between;
   }
 
-  .managerTop {
-    height: auto !important;
-    min-height: 52px !important;
+  .kioskClock {
+    min-width: 132px;
+    height: 46px;
   }
 
-  .managerTop h1 {
-    font-size: 20px !important;
-    max-height: none !important;
+  .kioskClock strong {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 430px) {
+  .headerMeta {
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .kioskClock,
+  .managerBtn {
+    width: 100%;
+  }
+}
+
+
+/* Button motion polish: subtle enough for a work kiosk */
+button,
+.qtyBtn,
+.clearBtn,
+.submitBtn,
+.managerBtn,
+.managerTop button,
+.yearCard button,
+.annualButton,
+.twoYearButton,
+.monthTile,
+.reportHeader button,
+.entryActions button,
+.pinCard button,
+.editActions button {
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease,
+    filter 0.14s ease,
+    background 0.14s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .qtyBtn:hover,
+  .clearBtn:hover,
+  .submitBtn:hover,
+  .managerBtn:hover,
+  .managerTop button:hover,
+  .yearCard button:hover,
+  .annualButton:hover,
+  .twoYearButton:hover,
+  .monthTile:hover,
+  .reportHeader button:hover,
+  .entryActions button:hover,
+  .pinCard button:hover,
+  .editActions button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.03);
+    box-shadow: 0 14px 26px rgba(80, 41, 28, 0.18);
+  }
+}
+
+.qtyBtn:active,
+.clearBtn:active,
+.submitBtn:active,
+.managerBtn:active,
+.managerTop button:active,
+.yearCard button:active,
+.annualButton:active,
+.twoYearButton:active,
+.monthTile:active,
+.reportHeader button:active,
+.entryActions button:active,
+.pinCard button:active,
+.editActions button:active {
+  transform: translateY(1px) scale(0.97);
+  filter: brightness(0.97);
+  box-shadow: 0 6px 14px rgba(80, 41, 28, 0.14);
+}
+
+.submitBtn:not(:disabled)::after,
+.clearBtn:not(:disabled)::after,
+.managerBtn:not(:disabled)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.submitBtn,
+.clearBtn,
+.managerBtn {
+  position: relative;
+  overflow: hidden;
+}
+
+.submitBtn:active::after,
+.clearBtn:active::after,
+.managerBtn:active::after {
+  animation: buttonPulse 0.28s ease-out;
+}
+
+@keyframes buttonPulse {
+  0% {
+    box-shadow: inset 0 0 0 0 rgba(255, 255, 255, 0.32);
+  }
+  100% {
+    box-shadow: inset 0 0 0 999px rgba(255, 255, 255, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .qtyBtn,
+  .clearBtn,
+  .submitBtn,
+  .managerBtn,
+  .managerTop button,
+  .yearCard button,
+  .annualButton,
+  .twoYearButton,
+  .monthTile,
+  .reportHeader button,
+  .entryActions button,
+  .pinCard button,
+  .editActions button {
+    transition: none;
+  }
+
+  .submitBtn:active::after,
+  .clearBtn:active::after,
+  .managerBtn:active::after {
+    animation: none;
+  }
+}
+
+
+/* Final bottom action polish */
+.actions {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  gap: 12px;
+  align-items: stretch;
+  grid-template-columns: minmax(160px, 0.36fr) 1fr;
+}
+
+.clearBtn,
+.submitBtn {
+  min-height: 62px;
+  height: 100%;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: clamp(16px, 1.65vw, 21px);
+  letter-spacing: -0.035em;
+  line-height: 1;
+  box-shadow: 0 16px 32px rgba(80, 41, 28, 0.16);
+  isolation: isolate;
+}
+
+.clearBtn {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 248, 237, 0.96));
+  border: 1px solid rgba(220, 201, 183, 0.95) !important;
+  color: var(--ink);
+}
+
+.submitBtn {
+  background:
+    linear-gradient(135deg, #ef3038 0%, var(--dq-red) 45%, var(--dq-red-dark) 100%);
+  border: 1px solid rgba(215, 25, 32, 0.24) !important;
+  color: white;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 18px 36px rgba(169, 15, 24, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.clearBtn::before,
+.submitBtn::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0));
+  pointer-events: none;
+  z-index: -1;
+}
+
+.clearBtn::after,
+.submitBtn::after {
+  border-radius: inherit;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .clearBtn:hover,
+  .submitBtn:hover {
+    transform: translateY(-2px);
+  }
+
+  .submitBtn:hover {
+    box-shadow:
+      0 22px 42px rgba(169, 15, 24, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+}
+
+@media (max-width: 760px) {
+  .actions {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .clearBtn,
+  .submitBtn {
+    min-height: 56px;
+    font-size: 16px;
+  }
+}
+
+@media (max-height: 640px) and (min-width: 760px) {
+  .clearBtn,
+  .submitBtn {
+    min-height: 58px;
+    border-radius: 20px;
   }
 }
