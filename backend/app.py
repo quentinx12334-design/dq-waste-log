@@ -96,29 +96,155 @@ def row_to_dict(row):
     }
 
 
+def format_money(value):
+    return f"${float(value or 0):.2f}"
+
+
+def format_report_datetime(value):
+    if not value:
+        return ""
+
+    try:
+        parsed = datetime.fromisoformat(str(value))
+        return parsed.strftime("%m/%d/%Y %I:%M %p")
+    except ValueError:
+        return str(value)
+
+
+def format_report_date(value):
+    if not value:
+        return ""
+
+    try:
+        parsed = datetime.fromisoformat(str(value))
+        return parsed.strftime("%m/%d/%Y")
+    except ValueError:
+        return str(value)
+
+
+def build_item_lookup(item_rows):
+    return {row["item_name"]: row for row in item_rows}
+
+
+def write_report_header(writer, title, subtitle, report_range, total_quantity, total_cost, row_count):
+    generated_at = datetime.now().strftime("%m/%d/%Y %I:%M %p")
+
+    writer.writerow([title])
+    writer.writerow([subtitle])
+    writer.writerow([])
+    writer.writerow(["Report Range", report_range])
+    writer.writerow(["Generated", generated_at])
+    writer.writerow(["Retention Requirement", f"{RETENTION_YEARS} years minimum"])
+    writer.writerow([])
+    writer.writerow(["SUMMARY"])
+    writer.writerow(["Total Items Wasted", "Total Estimated Loss", "Saved Rows"])
+    writer.writerow([total_quantity or 0, format_money(total_cost), row_count or 0])
+    writer.writerow([])
+
+
+def write_section_title(writer, title):
+    writer.writerow([])
+    writer.writerow([title])
+
+
+def write_item_breakdown(writer, item_rows):
+    item_lookup = build_item_lookup(item_rows)
+
+    write_section_title(writer, "ITEM BREAKDOWN")
+    writer.writerow(["Item", "Category", "Quantity", "Cost Per Item", "Estimated Loss"])
+
+    for item_name, price in ITEM_PRICES.items():
+        row = item_lookup.get(item_name)
+        quantity = row["quantity"] if row else 0
+        total_cost = row["total_cost"] if row else 0
+
+        writer.writerow([
+            item_name,
+            ITEM_CATEGORIES.get(item_name, "Item"),
+            quantity,
+            format_money(price),
+            format_money(total_cost),
+        ])
+
+
+def write_daily_totals(writer, daily_rows):
+    write_section_title(writer, "DAILY TOTALS")
+    writer.writerow(["Date", "Total Items", "Estimated Loss", "Rows Saved"])
+
+    if not daily_rows:
+        writer.writerow(["No waste logged", 0, format_money(0), 0])
+        return
+
+    for row in daily_rows:
+        writer.writerow([
+            format_report_date(row["date"]),
+            row["quantity"],
+            format_money(row["total_cost"]),
+            row["row_count"],
+        ])
+
+
+def write_monthly_totals(writer, monthly_rows):
+    write_section_title(writer, "MONTHLY TOTALS")
+    writer.writerow(["Month", "Total Items", "Estimated Loss", "Rows Saved"])
+
+    if not monthly_rows:
+        writer.writerow(["No waste logged", 0, format_money(0), 0])
+        return
+
+    for row in monthly_rows:
+        writer.writerow([
+            row["month"],
+            row["quantity"],
+            format_money(row["total_cost"]),
+            row["row_count"],
+        ])
+
+
+def write_yearly_totals(writer, yearly_rows):
+    write_section_title(writer, "YEARLY TOTALS")
+    writer.writerow(["Year", "Total Items", "Estimated Loss", "Rows Saved"])
+
+    if not yearly_rows:
+        writer.writerow(["No waste logged", 0, format_money(0), 0])
+        return
+
+    for row in yearly_rows:
+        writer.writerow([
+            row["year"],
+            row["quantity"],
+            format_money(row["total_cost"]),
+            row["row_count"],
+        ])
+
+
 def write_entry_history(writer, entry_rows):
-    writer.writerow(["Full Entry History"])
+    write_section_title(writer, "FULL ENTRY HISTORY")
     writer.writerow([
         "Entry ID",
         "Date/Time",
         "Item",
         "Quantity",
         "Cost Per Item",
-        "Total Cost",
+        "Estimated Loss",
         "Employee",
         "Note",
     ])
 
+    if not entry_rows:
+        writer.writerow(["No saved entries", "", "", 0, format_money(0), format_money(0), "", ""])
+        return
+
     for row in entry_rows:
         writer.writerow([
             row["id"],
-            row["created_at"],
+            format_report_datetime(row["created_at"]),
             row["item_name"],
             row["quantity"],
-            f"{row['cost_per_item']:.2f}",
-            f"{row['total_cost']:.2f}",
-            row["employee_name"],
-            row["note"],
+            format_money(row["cost_per_item"]),
+            format_money(row["total_cost"]),
+            row["employee_name"] or "",
+            row["note"] or "",
         ])
 
 
@@ -557,9 +683,11 @@ def summary_for_month():
 
 
 def make_report_response(csv_data, filename):
+    csv_data = "\ufeff" + csv_data
+
     return Response(
         csv_data,
-        mimetype="text/csv",
+        mimetype="text/csv; charset=utf-8",
         headers={
             "Content-Disposition": f"attachment; filename={filename}"
         },
@@ -586,6 +714,16 @@ def export_month_csv():
         end = f"{year}-{month_num + 1:02d}-01T00:00:00"
 
     with get_db() as conn:
+        total_row = conn.execute("""
+            SELECT
+                COALESCE(SUM(total_cost), 0) AS total_cost,
+                COALESCE(SUM(quantity), 0) AS quantity,
+                COUNT(*) AS row_count
+            FROM waste_entries
+            WHERE created_at >= ?
+              AND created_at < ?
+        """, (start, end)).fetchone()
+
         daily_rows = conn.execute("""
             SELECT
                 DATE(created_at) AS date,
@@ -622,32 +760,17 @@ def export_month_csv():
     output = io.StringIO()
     writer = csv.writer(output)
 
-    writer.writerow(["DQ Waste Report"])
-    writer.writerow(["Month", month])
-    writer.writerow(["Retention Requirement", f"{RETENTION_YEARS} years minimum"])
-    writer.writerow([])
-
-    writer.writerow(["Monthly Item Breakdown"])
-    writer.writerow(["Item", "Quantity", "Total Cost"])
-    for row in item_rows:
-        writer.writerow([
-            row["item_name"],
-            row["quantity"],
-            f"{row['total_cost']:.2f}",
-        ])
-
-    writer.writerow([])
-    writer.writerow(["Daily Totals"])
-    writer.writerow(["Date", "Total Quantity", "Total Cost", "Rows Saved"])
-    for row in daily_rows:
-        writer.writerow([
-            row["date"],
-            row["quantity"],
-            f"{row['total_cost']:.2f}",
-            row["row_count"],
-        ])
-
-    writer.writerow([])
+    write_report_header(
+        writer,
+        "DQ WASTE LOG REPORT",
+        "Monthly Waste Summary",
+        month,
+        total_row["quantity"],
+        total_row["total_cost"],
+        total_row["row_count"],
+    )
+    write_item_breakdown(writer, item_rows)
+    write_daily_totals(writer, daily_rows)
     write_entry_history(writer, entry_rows)
 
     csv_data = output.getvalue()
@@ -731,52 +854,18 @@ def export_year_csv():
     output = io.StringIO()
     writer = csv.writer(output)
 
-    writer.writerow(["DQ Annual Waste Report"])
-    writer.writerow(["Year", year])
-    writer.writerow(["Retention Requirement", f"{RETENTION_YEARS} years minimum"])
-    writer.writerow([])
-
-    writer.writerow(["Annual Summary"])
-    writer.writerow(["Total Quantity", "Total Cost", "Rows Saved"])
-    writer.writerow([
+    write_report_header(
+        writer,
+        "DQ ANNUAL WASTE REPORT",
+        "Yearly Waste Summary",
+        str(year),
         yearly_total["quantity"],
-        f"{yearly_total['total_cost']:.2f}",
+        yearly_total["total_cost"],
         yearly_total["row_count"],
-    ])
-
-    writer.writerow([])
-    writer.writerow(["Monthly Totals"])
-    writer.writerow(["Month", "Total Quantity", "Total Cost", "Rows Saved"])
-    for row in monthly_rows:
-        writer.writerow([
-            row["month"],
-            row["quantity"],
-            f"{row['total_cost']:.2f}",
-            row["row_count"],
-        ])
-
-    writer.writerow([])
-    writer.writerow(["Annual Item Breakdown"])
-    writer.writerow(["Item", "Quantity", "Total Cost"])
-    for row in item_rows:
-        writer.writerow([
-            row["item_name"],
-            row["quantity"],
-            f"{row['total_cost']:.2f}",
-        ])
-
-    writer.writerow([])
-    writer.writerow(["Daily Totals"])
-    writer.writerow(["Date", "Total Quantity", "Total Cost", "Rows Saved"])
-    for row in daily_rows:
-        writer.writerow([
-            row["date"],
-            row["quantity"],
-            f"{row['total_cost']:.2f}",
-            row["row_count"],
-        ])
-
-    writer.writerow([])
+    )
+    write_monthly_totals(writer, monthly_rows)
+    write_item_breakdown(writer, item_rows)
+    write_daily_totals(writer, daily_rows)
     write_entry_history(writer, entry_rows)
 
     csv_data = output.getvalue()
@@ -866,64 +955,19 @@ def export_two_year_csv():
     output = io.StringIO()
     writer = csv.writer(output)
 
-    writer.writerow(["DQ 2-Year Waste Report"])
-    writer.writerow(["Start", start])
-    writer.writerow(["End", end])
-    writer.writerow(["Retention Requirement", f"{RETENTION_YEARS} years minimum"])
-    writer.writerow([])
-
-    writer.writerow(["2-Year Summary"])
-    writer.writerow(["Total Quantity", "Total Cost", "Rows Saved"])
-    writer.writerow([
+    write_report_header(
+        writer,
+        "DQ 2-YEAR WASTE REPORT",
+        "Long-Term Waste Summary",
+        f"{format_report_date(start)} to {format_report_date(end)}",
         two_year_total["quantity"],
-        f"{two_year_total['total_cost']:.2f}",
+        two_year_total["total_cost"],
         two_year_total["row_count"],
-    ])
-
-    writer.writerow([])
-    writer.writerow(["Yearly Totals"])
-    writer.writerow(["Year", "Total Quantity", "Total Cost", "Rows Saved"])
-    for row in yearly_rows:
-        writer.writerow([
-            row["year"],
-            row["quantity"],
-            f"{row['total_cost']:.2f}",
-            row["row_count"],
-        ])
-
-    writer.writerow([])
-    writer.writerow(["Monthly Totals"])
-    writer.writerow(["Month", "Total Quantity", "Total Cost", "Rows Saved"])
-    for row in monthly_rows:
-        writer.writerow([
-            row["month"],
-            row["quantity"],
-            f"{row['total_cost']:.2f}",
-            row["row_count"],
-        ])
-
-    writer.writerow([])
-    writer.writerow(["2-Year Item Breakdown"])
-    writer.writerow(["Item", "Quantity", "Total Cost"])
-    for row in item_rows:
-        writer.writerow([
-            row["item_name"],
-            row["quantity"],
-            f"{row['total_cost']:.2f}",
-        ])
-
-    writer.writerow([])
-    writer.writerow(["Daily Totals"])
-    writer.writerow(["Date", "Total Quantity", "Total Cost", "Rows Saved"])
-    for row in daily_rows:
-        writer.writerow([
-            row["date"],
-            row["quantity"],
-            f"{row['total_cost']:.2f}",
-            row["row_count"],
-        ])
-
-    writer.writerow([])
+    )
+    write_yearly_totals(writer, yearly_rows)
+    write_monthly_totals(writer, monthly_rows)
+    write_item_breakdown(writer, item_rows)
+    write_daily_totals(writer, daily_rows)
     write_entry_history(writer, entry_rows)
 
     csv_data = output.getvalue()
