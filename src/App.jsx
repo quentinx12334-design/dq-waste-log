@@ -75,9 +75,7 @@ function App() {
   const todayWaste =
     (summary?.period === "today" ? summary.total_cost : 0) + currentTotal
 
-  const dailyGoal = 5
-  const goalDifference = Math.abs(dailyGoal - todayWaste)
-  const isOverGoal = todayWaste > dailyGoal
+  const isOverGoal = todayWaste >= 5
 
   const topMonthItem = useMemo(() => {
     if (!monthSummary?.items?.length) return null
@@ -457,11 +455,11 @@ function App() {
 
               <div className="exportButtons">
                 <button className="annualButton" onClick={exportSelectedYear}>
-                  Download {selectedYear} Report
+                  Export {selectedYear} Report
                 </button>
 
                 <button className="twoYearButton" onClick={exportTwoYearReport}>
-                  Download 2-Year Report
+                  Export Full Report
                 </button>
               </div>
 
@@ -503,13 +501,13 @@ function App() {
                       <p>Monthly Summary</p>
                       <h2>{prettyMonth(monthSummary.month)}</h2>
                       <span>
-                        {monthSummary.row_count} records •{" "}
+                        {monthSummary.row_count} saved entries •{" "}
                         {monthSummary.total_quantity} items wasted
                       </span>
                     </div>
 
                     <button onClick={exportSelectedMonth}>
-                      Download Monthly Report
+                      Export Monthly Report
                     </button>
                   </div>
 
@@ -529,9 +527,9 @@ function App() {
                     </div>
 
                     <div>
-                      <p>Counts Saved</p>
+                      <p>Entries Saved</p>
                       <strong>{monthSummary.row_count || 0}</strong>
-                      <span>Waste records saved</span>
+                      <span>Saved waste entries</span>
                     </div>
 
                     <div>
@@ -749,12 +747,10 @@ function App() {
 
         <section className="topStats">
           <div className={isOverGoal ? "totalPanel warning" : "totalPanel"}>
-            <p>Daily Waste Goal</p>
-            <strong>$5.00</strong>
-            <span className={isOverGoal ? "goalStatus over" : "goalStatus under"}>
-              {isOverGoal
-                ? `$${goalDifference.toFixed(2)} over goal today`
-                : `$${goalDifference.toFixed(2)} under goal today`}
+            <p>Today’s Total</p>
+            <strong>${todayWaste.toFixed(2)}</strong>
+            <span>
+              {isOverGoal ? "Above daily target" : "Within daily target"}
             </span>
           </div>
 
@@ -792,6 +788,7 @@ function App() {
                 return (
                   <article className="wasteRow" key={item.name}>
                     <div className="itemName">
+                      <span>{item.category}</span>
                       <strong>{item.name}</strong>
                     </div>
 
