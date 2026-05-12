@@ -176,7 +176,25 @@ function App() {
     setMessage("Current count cleared")
   }
 
-  async function submitEntry() {
+  async function saveSubmittedEntry(data) {
+    setCounts(EMPTY_COUNTS)
+
+    setMessage(
+      `Saved ${data.items_saved} item type(s) • $${data.entry_total.toFixed(2)}`
+    )
+
+    setShowSavedFlash(true)
+    window.setTimeout(() => setShowSavedFlash(false), 1400)
+
+    await loadRecentEntries()
+    await loadTodaySummary()
+
+    if (selectedMonth) {
+      await loadMonthReport(selectedMonth)
+    }
+  }
+
+  async function submitEntry(force = false) {
     if (currentQuantity === 0) {
       setMessage("Add at least one item before submitting")
       return
@@ -194,33 +212,32 @@ function App() {
           counts,
           employee_name: "",
           note: "",
+          force,
         }),
       })
 
       const data = await response.json()
+
+      if (response.status === 409 && data.duplicate_warning && !force) {
+        const confirmExtraSubmit = window.confirm(
+          "A closing waste count has already been submitted today. Submit another one?"
+        )
+
+        if (!confirmExtraSubmit) {
+          setMessage("Submit canceled")
+          return
+        }
+
+        await submitEntry(true)
+        return
+      }
 
       if (!response.ok) {
         setMessage(data.error || "Could not submit entry")
         return
       }
 
-      setCounts(EMPTY_COUNTS)
-
-      setMessage(
-        `Saved ${data.items_saved} item type(s) • $${data.entry_total.toFixed(
-          2
-        )}`
-      )
-
-      setShowSavedFlash(true)
-      window.setTimeout(() => setShowSavedFlash(false), 1400)
-
-      await loadRecentEntries()
-      await loadTodaySummary()
-
-      if (selectedMonth) {
-        await loadMonthReport(selectedMonth)
-      }
+      await saveSubmittedEntry(data)
     } catch {
       setMessage("Could not connect to backend")
     } finally {
@@ -438,7 +455,7 @@ function App() {
 
               <div className="exportButtons">
                 <button className="annualButton" onClick={exportSelectedYear}>
-                  Export {selectedYear} Annual report
+                  Export {selectedYear} Report
                 </button>
 
                 <button className="twoYearButton" onClick={exportTwoYearReport}>
@@ -484,9 +501,9 @@ function App() {
                       <p>Monthly Summary</p>
                       <h2>{prettyMonth(monthSummary.month)}</h2>
                       <span>
-  {monthSummary.row_count} saved entries •{" "}
-  {monthSummary.total_quantity} items wasted
-</span>
+                        {monthSummary.row_count} saved entries •{" "}
+                        {monthSummary.total_quantity} items wasted
+                      </span>
                     </div>
 
                     <button onClick={exportSelectedMonth}>
@@ -504,16 +521,16 @@ function App() {
                     </div>
 
                     <div>
-  <p>Items Wasted</p>
-  <strong>{monthSummary.total_quantity || 0}</strong>
-  <span>Total items logged</span>
-</div>
+                      <p>Items Wasted</p>
+                      <strong>{monthSummary.total_quantity || 0}</strong>
+                      <span>Total items logged</span>
+                    </div>
 
                     <div>
-  <p>Entries Saved</p>
-  <strong>{monthSummary.row_count || 0}</strong>
-  <span>Saved waste entries</span>
-</div>
+                      <p>Entries Saved</p>
+                      <strong>{monthSummary.row_count || 0}</strong>
+                      <span>Saved waste entries</span>
+                    </div>
 
                     <div>
                       <p>Top Item</p>
@@ -528,7 +545,7 @@ function App() {
 
                   <div className="insightStrip">
                     <div>
-                      <p>Average per Record</p>
+                      <p>Average per Entry</p>
                       <strong>${averageMonthlyRecord.toFixed(2)}</strong>
                     </div>
                   </div>
@@ -730,9 +747,11 @@ function App() {
 
         <section className="topStats">
           <div className={isOverGoal ? "totalPanel warning" : "totalPanel"}>
-            <p>Today’s Waste</p>
+            <p>Today’s Total</p>
             <strong>${todayWaste.toFixed(2)}</strong>
-            <span>{isOverGoal ? "Above daily target" : "Within daily target"}</span>
+            <span>
+              {isOverGoal ? "Above daily target" : "Within daily target"}
+            </span>
           </div>
 
           <div className="smallStat">
@@ -846,7 +865,7 @@ function App() {
 
           <button
             className="submitBtn"
-            onClick={submitEntry}
+            onClick={() => submitEntry(false)}
             disabled={loading}
           >
             Submit Closing Waste
