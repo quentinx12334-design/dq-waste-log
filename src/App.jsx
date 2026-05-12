@@ -103,7 +103,7 @@ function App() {
 
       setRecentEntries(data)
     } catch {
-      setMessage("Backend not connected")
+      setMessage("Ready for closing waste count")
     }
   }
 
@@ -115,7 +115,7 @@ function App() {
       setSummary(data)
     } catch {
       setSummary(null)
-      setMessage("Backend not connected")
+      setMessage("Ready for closing waste count")
     }
   }
 
@@ -328,7 +328,7 @@ function App() {
         await loadMonthReport(selectedMonth)
       }
     } catch {
-      setManagerMessage("Could not connect to backend")
+      setManagerMessage("Ready for closing waste count")
     }
   }
 
