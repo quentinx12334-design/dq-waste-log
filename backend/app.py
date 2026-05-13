@@ -143,19 +143,48 @@ def build_item_lookup(item_rows):
     return {row["item_name"]: row for row in item_rows}
 
 
-def write_report_header(writer, title, subtitle, report_range, total_quantity, total_cost, row_count):
+def clean_csv_text(value):
+    if value is None:
+        return ""
+
+    return str(value).replace("\n", " ").replace("\r", " ").strip()
+
+
+def calc_average_loss(total_cost, row_count):
+    if not row_count:
+        return 0
+
+    return round(float(total_cost or 0) / int(row_count), 2)
+
+
+def get_top_item(item_rows):
+    if not item_rows:
+        return None
+
+    return max(item_rows, key=lambda row: float(row["total_cost"] or 0))
+
+
+def get_top_day(daily_rows):
+    if not daily_rows:
+        return None
+
+    return max(daily_rows, key=lambda row: float(row["total_cost"] or 0))
+
+
+
+def write_report_header(writer, report_type, report_range, total_quantity, total_cost, row_count):
     generated_at = format_report_datetime(datetime.now().isoformat(timespec="minutes"))
 
-    writer.writerow([title])
-    writer.writerow([subtitle])
-    writer.writerow([])
-    writer.writerow(["Range", report_range])
-    writer.writerow(["Generated", generated_at])
-    writer.writerow(["Keep For", f"{RETENTION_YEARS} yrs"])
-    writer.writerow([])
-    writer.writerow(["SUMMARY"])
-    writer.writerow(["Items", "Loss", "Records"])
-    writer.writerow([total_quantity or 0, format_money(total_cost), row_count or 0])
+    writer.writerow(["Report", "Type", "Range", "Generated", "Loss", "Items", "Entries"])
+    writer.writerow([
+        "DQ Waste",
+        report_type,
+        report_range,
+        generated_at,
+        format_money(total_cost),
+        total_quantity or 0,
+        row_count or 0,
+    ])
     writer.writerow([])
 
 
@@ -167,26 +196,24 @@ def write_section_title(writer, title):
 def write_item_breakdown(writer, item_rows):
     item_lookup = build_item_lookup(item_rows)
 
-    write_section_title(writer, "ITEMS")
-    writer.writerow(["Item", "Category", "Qty", "Each", "Loss"])
+    write_section_title(writer, "Items")
+    writer.writerow(["Item", "Qty", "Loss"])
 
-    for item_name, price in ITEM_PRICES.items():
+    for item_name in ITEM_PRICES:
         row = item_lookup.get(item_name)
         quantity = row["quantity"] if row else 0
         total_cost = row["total_cost"] if row else 0
 
         writer.writerow([
             item_name,
-            ITEM_CATEGORIES.get(item_name, "Item"),
             quantity,
-            format_money(price),
             format_money(total_cost),
         ])
 
 
 def write_daily_totals(writer, daily_rows):
-    write_section_title(writer, "DAYS")
-    writer.writerow(["Date", "Items", "Loss", "Records"])
+    write_section_title(writer, "Days")
+    writer.writerow(["Date", "Items", "Loss", "Entries"])
 
     if not daily_rows:
         writer.writerow(["None", 0, format_money(0), 0])
@@ -202,8 +229,8 @@ def write_daily_totals(writer, daily_rows):
 
 
 def write_monthly_totals(writer, monthly_rows):
-    write_section_title(writer, "MONTHS")
-    writer.writerow(["Month", "Items", "Loss", "Records"])
+    write_section_title(writer, "Months")
+    writer.writerow(["Month", "Items", "Loss", "Entries"])
 
     if not monthly_rows:
         writer.writerow(["None", 0, format_money(0), 0])
@@ -219,8 +246,8 @@ def write_monthly_totals(writer, monthly_rows):
 
 
 def write_yearly_totals(writer, yearly_rows):
-    write_section_title(writer, "YEARS")
-    writer.writerow(["Year", "Items", "Loss", "Records"])
+    write_section_title(writer, "Years")
+    writer.writerow(["Year", "Items", "Loss", "Entries"])
 
     if not yearly_rows:
         writer.writerow(["None", 0, format_money(0), 0])
@@ -236,77 +263,21 @@ def write_yearly_totals(writer, yearly_rows):
 
 
 def write_entry_history(writer, entry_rows):
-    write_section_title(writer, "ENTRIES")
-    writer.writerow([
-        "Entry ID",
-        "Date", "Time",
-        "Item",
-        "Qty",
-        "Each",
-        "Loss",
-        "Emp",
-        "Note",
-    ])
+    write_section_title(writer, "Entries")
+    writer.writerow(["Date", "Time", "Item", "Qty", "Loss"])
 
     if not entry_rows:
-        writer.writerow(["No saved entries", "", "", "", 0, format_money(0), format_money(0), "", ""])
+        writer.writerow(["None", "", "", 0, format_money(0)])
         return
 
     for row in entry_rows:
         writer.writerow([
-            row["id"],
             format_report_date(row["created_at"]),
             format_report_time(row["created_at"]),
             row["item_name"],
             row["quantity"],
-            format_money(row["cost_per_item"]),
             format_money(row["total_cost"]),
-            row["employee_name"] or "",
-            row["note"] or "",
         ])
-
-
-@app.route("/api/health", methods=["GET"])
-def health():
-    return jsonify({"status": "ok"})
-
-
-@app.route("/api/items", methods=["GET"])
-def get_items():
-    return jsonify([
-        {
-            "name": name,
-            "price": round(price, 2),
-            "category": ITEM_CATEGORIES.get(name, "Item"),
-        }
-        for name, price in ITEM_PRICES.items()
-    ])
-
-
-@app.route("/api/items", methods=["PUT"])
-def update_items():
-    data = request.get_json(force=True)
-    incoming_items = data.get("items", [])
-
-    if not isinstance(incoming_items, list) or not incoming_items:
-        return jsonify({"error": "Items list is required."}), 400
-
-    for item in incoming_items:
-        item_name = item.get("name")
-        if item_name not in ITEM_PRICES:
-            continue
-
-        try:
-            price = round(float(item.get("price", 0)), 2)
-        except (TypeError, ValueError):
-            return jsonify({"error": f"Invalid price for {item_name}."}), 400
-
-        if price < 0:
-            return jsonify({"error": f"Price for {item_name} cannot be negative."}), 400
-
-        ITEM_PRICES[item_name] = price
-
-    return get_items()
 
 
 @app.route("/api/settings", methods=["GET"])
@@ -779,14 +750,13 @@ def export_month_csv():
     writer = csv.writer(output)
 
     write_report_header(
-        writer,
-        "DQ WASTE REPORT",
-        "Month Summary",
-        month,
-        total_row["quantity"],
-        total_row["total_cost"],
-        total_row["row_count"],
-    )
+    writer,
+    "Month",
+    month,
+    total_row["quantity"],
+    total_row["total_cost"],
+    total_row["row_count"],
+)
     write_item_breakdown(writer, item_rows)
     write_daily_totals(writer, daily_rows)
     write_entry_history(writer, entry_rows)
@@ -874,17 +844,16 @@ def export_year_csv():
 
     write_report_header(
         writer,
-        "DQ YEAR REPORT",
-        "Year Summary",
+        "Year",
         str(year),
         yearly_total["quantity"],
         yearly_total["total_cost"],
         yearly_total["row_count"],
     )
+
     write_monthly_totals(writer, monthly_rows)
     write_item_breakdown(writer, item_rows)
     write_daily_totals(writer, daily_rows)
-    write_entry_history(writer, entry_rows)
 
     csv_data = output.getvalue()
     output.close()
@@ -975,12 +944,14 @@ def export_two_year_csv():
 
     write_report_header(
         writer,
-        "DQ 2-YEAR WASTE REPORT",
-        "Long-Term Waste Summary",
+        "Two-Year Waste Report",
+        "Long-Term Owner Summary",
         f"{format_report_date(start)} to {format_report_date(end)}",
         two_year_total["quantity"],
         two_year_total["total_cost"],
         two_year_total["row_count"],
+        item_rows,
+        daily_rows,
     )
     write_yearly_totals(writer, yearly_rows)
     write_monthly_totals(writer, monthly_rows)
