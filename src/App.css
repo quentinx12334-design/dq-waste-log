@@ -2331,3 +2331,45 @@ tbody tr:nth-child(even) {
 button:active {
   transform: translateY(1px) scale(0.98);
 }
+
+/* PC fullscreen can scroll, tablet kiosk stays locked */
+
+@media (min-width: 1281px) {
+  body,
+  .app {
+    overflow-y: auto;
+  }
+
+  .kiosk {
+    height: auto;
+    min-height: calc(100dvh - 24px);
+    overflow: visible;
+  }
+
+  .mainArea,
+  .entryArea,
+  .recentArea,
+  .wasteRows,
+  .recentList,
+  .actions {
+    overflow: visible;
+  }
+}
+
+@media (orientation: landscape) and (min-width: 901px) and (max-width: 1280px) {
+  body,
+  .app,
+  .kiosk,
+  .mainArea,
+  .entryArea,
+  .recentArea,
+  .wasteRows,
+  .recentList,
+  .actions {
+    overflow: hidden;
+  }
+
+  .kiosk {
+    height: calc(100dvh - 24px);
+  }
+}
