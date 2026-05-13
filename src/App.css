@@ -10,14 +10,17 @@
   --cream-2: #f7efe1;
   --ink: #211816;
   --ink-soft: #51433f;
-  --muted: #7b6b64;
+  --muted: #77675f;
   --line: #eadccd;
   --line-strong: #dcc9b7;
   --white: #ffffff;
   --success: #e9f8ef;
   --warning: #fde8ea;
-  --shadow: 0 14px 34px rgba(80, 41, 28, 0.11);
-  --shadow-strong: 0 20px 55px rgba(80, 41, 28, 0.18);
+  --shadow: 0 12px 28px rgba(80, 41, 28, 0.1);
+  --shadow-strong: 0 20px 50px rgba(80, 41, 28, 0.18);
+  --radius-xl: 22px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
 }
 
 html,
@@ -26,14 +29,25 @@ body,
   margin: 0;
   width: 100%;
   height: 100%;
+  min-width: 320px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  font-family: "Aptos", "Segoe UI", Inter, Arial, Helvetica, sans-serif;
+  font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(215, 25, 32, 0.09), transparent 34%),
+    radial-gradient(circle at 8% 0%, rgba(215, 25, 32, 0.1), transparent 32%),
     linear-gradient(135deg, var(--cream), var(--cream-2));
   color: var(--ink);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+::selection {
+  background: rgba(215, 25, 32, 0.18);
 }
 
 button,
@@ -44,28 +58,66 @@ textarea {
 }
 
 button {
-  touch-action: manipulation;
+  border: 0;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 button:disabled {
-  opacity: 0.65;
+  opacity: 0.6;
   cursor: not-allowed;
+  filter: grayscale(0.15);
+  box-shadow: none !important;
+}
+
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+input,
+textarea,
+select {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 4px solid rgba(215, 25, 32, 0.18);
+  outline-offset: 3px;
 }
 
 .app {
   width: 100vw;
+  height: 100dvh;
   min-height: 100dvh;
   padding: 12px;
   overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.kiosk,
+.managerShell {
+  width: min(100%, 1180px);
+  height: calc(100dvh - 24px);
+  margin: 0 auto;
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .kiosk {
-  height: calc(100dvh - 24px);
-  max-width: 1180px;
-  margin: 0 auto;
   display: grid;
-  grid-template-rows: 68px 92px 1fr 70px;
+  grid-template-rows: 74px 104px minmax(0, 1fr) 82px;
   gap: 10px;
 }
 
@@ -87,17 +139,31 @@ button:disabled {
 .managerStats div,
 .reportCard,
 .insightStrip div {
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.95);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
 }
 
+.header,
+.entryArea,
+.recentArea,
+.totalPanel,
+.smallStat,
+.managerTop,
+.monthPanel,
+.reportPanel,
+.actions {
+  backdrop-filter: blur(8px);
+}
+
 .header {
-  border-radius: 22px;
+  min-height: 74px;
+  border-radius: var(--radius-xl);
   padding: 10px 16px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .brand,
@@ -105,51 +171,70 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .brandIcon,
 .pinBadge {
+  flex: 0 0 auto;
   background: linear-gradient(135deg, var(--dq-red), var(--dq-red-dark));
   color: white;
   box-shadow: 0 10px 22px rgba(215, 25, 32, 0.25);
 }
 
 .brandIcon {
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 16px;
   display: grid;
   place-items: center;
-  font-weight: 1000;
   font-size: 18px;
+  font-weight: 1000;
   letter-spacing: -0.05em;
 }
 
 .brand p,
-.headerMeta p {
+.headerMeta p,
+.totalPanel p,
+.smallStat p,
+.managerStats p,
+.reportHeader p,
+.insightStrip p,
+.yearCard p,
+.pinCard p,
+.editHeader p {
   margin: 0;
   color: var(--muted);
   font-size: 10px;
-  font-weight: 900;
+  line-height: 1.1;
+  font-weight: 950;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
+.brand h1,
+.managerTop h1,
+.pinCard h1,
+.emptyReport h2,
+.editHeader h2 {
+  margin: 2px 0 0;
+  line-height: 0.95;
+  font-weight: 1000;
+  letter-spacing: -0.06em;
+}
+
 .brand h1 {
-  margin: 1px 0 0;
-  font-size: 27px;
-  line-height: 1;
-  letter-spacing: -0.055em;
+  font-size: clamp(27px, 2.4vw, 34px);
 }
 
 .kioskClock {
-  min-width: 148px;
-  height: 48px;
+  min-width: 154px;
+  height: 50px;
   padding: 5px 14px;
   border-radius: 16px;
   background: linear-gradient(135deg, #ffffff, #fff7ec);
   border: 1px solid var(--line-strong);
-  box-shadow: 0 10px 24px rgba(80, 41, 28, 0.1);
+  box-shadow: 0 10px 22px rgba(80, 41, 28, 0.1);
   display: grid;
   place-content: center;
   text-align: center;
@@ -157,11 +242,11 @@ button:disabled {
 
 .kioskClock strong {
   display: block;
-  color: var(--ink);
-  font-size: 25px;
+  font-size: 26px;
   line-height: 0.95;
   font-weight: 1000;
   letter-spacing: -0.055em;
+  font-variant-numeric: tabular-nums;
 }
 
 .kioskClock span {
@@ -177,30 +262,40 @@ button:disabled {
 .managerBtn,
 .managerTop button,
 .yearCard button,
-.entryActions button {
+.entryActions button,
+.annualButton,
+.clearBtn {
   background: var(--ink);
   color: white;
 }
 
 .managerBtn {
-  height: 40px;
+  height: 42px;
   padding: 0 18px;
-  border: none;
   border-radius: 14px;
   font-size: 13px;
   font-weight: 950;
+  white-space: nowrap;
 }
 
 .topStats {
+  min-height: 104px;
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr;
+  grid-template-columns: 1.35fr 1fr 1fr;
   gap: 10px;
+  min-width: 0;
 }
 
 .totalPanel,
 .smallStat {
-  border-radius: 22px;
-  padding: 13px 16px;
+  min-width: 0;
+  min-height: 104px;
+  border-radius: var(--radius-xl);
+  padding: 14px 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .totalPanel {
@@ -213,106 +308,142 @@ button:disabled {
   border-color: #ffc9cf;
 }
 
-.totalPanel p,
-.smallStat p,
-.managerStats p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 950;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
 .totalPanel strong,
 .smallStat strong,
 .managerStats strong {
   display: block;
-  margin-top: 5px;
-  font-size: 28px;
+  margin-top: 7px;
   line-height: 1;
-  letter-spacing: -0.055em;
+  font-weight: 1000;
+  letter-spacing: -0.06em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.totalPanel strong,
+.smallStat strong {
+  font-size: clamp(30px, 3vw, 40px);
+}
+
+.totalPanel strong {
+  color: #13783b;
+}
+
+.totalPanel.warning strong {
+  color: var(--dq-red-dark);
+}
+
+.smallStat strong {
+  color: var(--ink);
 }
 
 .totalPanel span,
 .smallStat span,
-.managerStats span {
+.managerStats span,
+.reportHeader span,
+.emptyReport p,
+.pinCard > span,
+.editHeader span {
   display: block;
-  margin-top: 5px;
+  margin-top: 7px;
   color: var(--ink-soft);
-  font-size: 11px;
+  font-size: 12px;
+  line-height: 1.15;
   font-weight: 800;
 }
 
 .mainArea {
   min-height: 0;
+  min-width: 0;
+  overflow: hidden;
   display: grid;
-  grid-template-columns: 1fr 230px;
+  grid-template-columns: minmax(0, 1fr) 250px;
   gap: 10px;
 }
 
 .entryArea,
 .recentArea {
   min-height: 0;
-  border-radius: 22px;
+  border-radius: var(--radius-xl);
   padding: 12px;
   overflow: hidden;
 }
 
 .entryArea {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
 }
 
-.sectionTitle {
+.sectionTitle,
+.reportHeader,
+.editHeader {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
+  min-width: 0;
 }
 
-.sectionTitle h2 {
+.sectionTitle h2,
+.reportCard h3,
+.reportHeader h2 {
   margin: 0;
-  font-size: 22px;
   line-height: 1;
+  font-weight: 1000;
   letter-spacing: -0.05em;
 }
 
+.sectionTitle h2 {
+  font-size: clamp(22px, 2.1vw, 30px);
+}
+
 .sectionTitle p {
-  margin: 4px 0 0;
+  margin: 5px 0 0;
   color: var(--muted);
   font-size: 12px;
   font-weight: 750;
 }
 
 .saveStatus {
-  padding: 8px 12px;
+  max-width: 320px;
+  min-width: 0;
+  padding: 9px 12px;
   border-radius: 999px;
   background: var(--dq-red-soft);
   color: var(--dq-red-dark);
-  font-size: 11px;
-  font-weight: 900;
-  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1.2;
+  white-space: normal;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .wasteRows {
   min-height: 0;
+  overflow: hidden;
   display: grid;
-  grid-template-rows: repeat(5, 1fr);
+  grid-template-rows: repeat(5, minmax(76px, 1fr));
   gap: 8px;
 }
 
 .wasteRow {
-  min-height: 0;
+  min-width: 0;
+  min-height: 76px;
   display: grid;
-  grid-template-columns: 1.15fr 0.65fr 60px 0.6fr 60px 0.75fr;
+  grid-template-columns: minmax(140px, 1.15fr) 90px 64px 86px 64px 104px;
   align-items: center;
+  align-content: center;
   gap: 8px;
   padding: 8px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   background: linear-gradient(135deg, #ffffff, #fffaf2);
+}
+
+.itemName {
+  min-width: 0;
 }
 
 .itemName span {
@@ -331,21 +462,31 @@ button:disabled {
 
 .itemName strong {
   display: block;
-  font-size: 21px;
-  line-height: 1;
-  letter-spacing: -0.045em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: clamp(23px, 2.2vw, 30px);
+  line-height: 0.95;
+  font-weight: 1000;
+  letter-spacing: -0.055em;
 }
 
 .itemPrice,
 .qtyDisplay,
 .rowTotal {
-  height: 52px;
+  min-height: 58px;
+  height: 58px;
+  flex-shrink: 0;
   border-radius: 15px;
   background: white;
   border: 1px solid var(--line);
   display: grid;
   place-content: center;
   text-align: center;
+  overflow: hidden;
+}
+
+.qtyDisplay {
+  background: linear-gradient(180deg, #ffffff, #fff8ed);
 }
 
 .itemPrice p,
@@ -363,20 +504,28 @@ button:disabled {
 .rowTotal strong {
   font-size: 16px;
   line-height: 1;
+  font-weight: 1000;
+  font-variant-numeric: tabular-nums;
 }
 
 .qtyDisplay strong {
-  font-size: 27px;
+  color: var(--dq-red-dark);
+  font-size: 29px;
   line-height: 0.9;
+  font-weight: 1000;
+  font-variant-numeric: tabular-nums;
 }
 
 .qtyBtn {
-  height: 52px;
-  border: none;
+  min-height: 58px;
+  height: 58px;
+  flex-shrink: 0;
   border-radius: 15px;
   color: white;
-  font-size: 28px;
+  font-size: 31px;
   font-weight: 1000;
+  line-height: 1;
+  box-shadow: 0 10px 18px rgba(80, 41, 28, 0.12);
 }
 
 .minus {
@@ -393,29 +542,17 @@ button:disabled {
   color: white;
 }
 
-.qtyBtn:active,
-.submitBtn:active,
-.clearBtn:active,
-.managerBtn:active,
-.managerTop button:active,
-.yearCard button:active,
-.annualButton:active,
-.twoYearButton:active,
-.monthTile:active,
-.reportHeader button:active {
-  transform: scale(0.98);
-}
-
 .recentArea {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
 }
 
 .recentList {
   min-height: 0;
+  overflow: hidden;
   display: grid;
-  grid-template-rows: repeat(5, 1fr);
+  grid-template-rows: repeat(5, minmax(58px, 1fr));
   gap: 8px;
 }
 
@@ -423,9 +560,12 @@ button:disabled {
   grid-row: 1 / -1;
   display: grid;
   place-content: center;
+  padding: 14px;
   text-align: center;
   color: var(--muted);
-  padding: 14px;
+  background:
+    radial-gradient(circle at top, rgba(215, 25, 32, 0.06), transparent 36%),
+    rgba(255, 255, 255, 0.95);
 }
 
 .emptyState strong {
@@ -439,82 +579,101 @@ button:disabled {
   font-weight: 750;
 }
 
-.recentCard {
+.recentCard,
+.entryRow {
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: #fffaf2;
   padding: 9px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition:
+    transform 0.14s ease,
+    border-color 0.14s ease,
+    background 0.14s ease;
 }
 
-.recentCard strong {
+.recentCard div,
+.entryRow div {
+  min-width: 0;
+}
+
+.recentCard strong,
+.entryRow strong {
+  display: block;
   font-size: 13px;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
 }
 
-.recentCard p {
+.recentCard p,
+.entryRow p {
   margin: 3px 0 0;
   color: var(--muted);
   font-size: 10px;
   font-weight: 800;
 }
 
-.recentCard span {
-  font-size: 14px;
+.recentCard span,
+.entryActions span {
+  flex: 0 0 auto;
+  font-size: 15px;
   font-weight: 1000;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .actions {
-  border-radius: 22px;
+  min-height: 82px;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
   padding: 9px;
   display: grid;
-  grid-template-columns: 190px 1fr;
+  grid-template-columns: 190px minmax(0, 1fr);
   gap: 10px;
+  background: rgba(255, 255, 255, 0.78);
 }
 
 .clearBtn,
 .submitBtn {
-  border: none;
-  border-radius: 17px;
-  font-size: 16px;
+  min-height: 62px;
+  border-radius: 18px;
+  font-size: 17px;
   font-weight: 1000;
 }
 
 .clearBtn {
-  background: white;
+  background:
+    linear-gradient(180deg, #ffffff, #fffaf2);
   border: 1px solid var(--line-strong);
   color: var(--ink);
 }
 
 .submitBtn {
-  border: none;
+  letter-spacing: -0.01em;
 }
 
 .managerShell {
-  position: relative;
-  height: calc(100dvh - 24px);
-  max-width: 1180px;
-  margin: 0 auto;
   display: grid;
-  grid-template-rows: 70px 1fr;
-
-    gap: 10px;
-  overflow: hidden;
-}
-
-.managerTop,
-.managerWorkspace {
-  position: relative;
-  z-index: 1;
+  grid-template-rows: 76px minmax(0, 1fr);
+  gap: 10px;
 }
 
 .managerTop {
-  border-radius: 22px;
+  min-height: 76px;
+  border-radius: var(--radius-xl);
   padding: 12px 16px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.managerTop div {
+  min-width: 0;
 }
 
 .managerTop p {
@@ -527,22 +686,20 @@ button:disabled {
 }
 
 .managerTop h1 {
-  margin: 2px 0;
-  font-size: 29px;
-  line-height: 1;
-  letter-spacing: -0.06em;
+  font-size: clamp(28px, 2.7vw, 38px);
 }
 
 .managerTop span {
   color: var(--muted);
+  font-size: 12px;
   font-weight: 750;
-  font-size: 11px;
+  overflow-wrap: anywhere;
 }
 
 .managerTop button {
-  height: 40px;
-  padding: 0 17px;
-  border: none;
+  min-width: 130px;
+  height: 44px;
+  padding: 0 18px;
   border-radius: 14px;
   font-size: 13px;
   font-weight: 950;
@@ -550,59 +707,52 @@ button:disabled {
 
 .managerWorkspace {
   min-height: 0;
+  min-width: 0;
   display: grid;
-  grid-template-columns: 340px 1fr;
+  grid-template-columns: 340px minmax(0, 1fr);
   gap: 10px;
 }
 
 .monthPanel,
 .reportPanel {
   min-height: 0;
-  border-radius: 22px;
+  border-radius: var(--radius-xl);
   padding: 12px;
   overflow: hidden;
 }
 
 .monthPanel {
   display: grid;
-  grid-template-rows: 68px 100px 1fr;
+  grid-template-rows: 70px 100px minmax(0, 1fr);
   gap: 10px;
 }
 
 .yearCard {
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   padding: 8px;
   display: grid;
-  grid-template-columns: 50px 1fr 50px;
-  gap: 8px;
+  grid-template-columns: 50px minmax(0, 1fr) 50px;
   align-items: center;
+  gap: 8px;
 }
 
 .yearCard button {
   height: 48px;
-  border: none;
   border-radius: 15px;
   font-size: 24px;
   font-weight: 1000;
 }
 
 .yearCard div {
+  min-width: 0;
   text-align: center;
-}
-
-.yearCard p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 950;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 .yearCard strong {
   display: block;
-  font-size: 29px;
+  font-size: 30px;
   line-height: 1;
+  font-weight: 1000;
   letter-spacing: -0.055em;
 }
 
@@ -614,8 +764,7 @@ button:disabled {
 
 .annualButton,
 .twoYearButton {
-  height: 45px;
-  border: none;
+  min-height: 46px;
   border-radius: 16px;
   font-size: 13px;
   font-weight: 950;
@@ -628,13 +777,15 @@ button:disabled {
 
 .monthGrid {
   min-height: 0;
+  min-width: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(4, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
 .monthTile {
+  min-width: 0;
   border-radius: 17px;
   padding: 10px;
   text-align: left;
@@ -660,6 +811,7 @@ button:disabled {
   display: block;
   font-size: 18px;
   line-height: 1;
+  font-weight: 1000;
   letter-spacing: -0.045em;
 }
 
@@ -675,67 +827,52 @@ button:disabled {
 
 .reportPanel {
   display: grid;
-  grid-template-rows: 82px 88px 58px 1fr;
+  grid-template-rows: 86px 124px 62px minmax(0, 1fr);
   gap: 10px;
 }
 
 .emptyReport {
   grid-row: 1 / -1;
-  border-radius: 22px;
+  border-radius: var(--radius-xl);
   display: grid;
   place-content: center;
-  text-align: center;
   padding: 24px;
+  text-align: center;
+  background:
+    radial-gradient(circle at top, rgba(215, 25, 32, 0.06), transparent 36%),
+    rgba(255, 255, 255, 0.95);
 }
 
 .emptyReport h2 {
-  margin: 0;
-  font-size: 30px;
-  letter-spacing: -0.055em;
+  font-size: clamp(30px, 4vw, 46px);
 }
 
 .emptyReport p {
-  margin: 8px auto 0;
   max-width: 460px;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 750;
+  margin: 9px auto 0;
 }
 
 .reportHeader {
-  border-radius: 18px;
+  min-height: 86px;
+  border-radius: var(--radius-lg);
   padding: 12px 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
 }
 
-.reportHeader p {
-  margin: 0;
-  color: var(--dq-red);
-  font-size: 9px;
-  font-weight: 950;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+.reportHeader div {
+  min-width: 0;
 }
 
 .reportHeader h2 {
-  margin: 2px 0;
-  font-size: 23px;
-  line-height: 1;
-  letter-spacing: -0.05em;
+  font-size: clamp(23px, 2.3vw, 34px);
 }
 
 .reportHeader span {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 750;
+  overflow-wrap: anywhere;
 }
 
 .reportHeader button {
-  height: 40px;
-  border: none;
+  flex: 0 0 auto;
+  height: 44px;
   border-radius: 15px;
   padding: 0 17px;
   font-size: 13px;
@@ -744,68 +881,81 @@ button:disabled {
 }
 
 .managerStats {
-  min-height: 0;
+  min-height: 124px;
+  min-width: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
 .managerStats div {
-  border-radius: 18px;
-  padding: 12px;
+  min-width: 0;
+  min-height: 124px;
+  border-radius: var(--radius-lg);
+  padding: 13px 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .managerStats strong {
-  font-size: 23px;
+  margin-top: 9px;
+  padding-bottom: 2px;
+  font-size: clamp(31px, 3vw, 42px);
+  line-height: 1;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.managerStats span {
+  margin-top: 9px;
+  font-size: 13px;
+  line-height: 1.15;
 }
 
 .insightStrip {
-  min-height: 0;
+  min-height: 62px;
+  min-width: 0;
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
 }
 
 .insightStrip div {
-  border-radius: 18px;
+  min-height: 62px;
+  border-radius: var(--radius-lg);
   padding: 11px 14px;
-}
-
-.insightStrip p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 950;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
 .insightStrip strong {
   display: block;
   margin-top: 4px;
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1;
+  font-weight: 1000;
   letter-spacing: -0.035em;
 }
 
 .reportGrid {
   min-height: 0;
+  min-width: 0;
   display: grid;
   grid-template-columns: 0.92fr 1.08fr;
   gap: 10px;
 }
 
 .reportCard {
+  min-width: 0;
   min-height: 0;
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   padding: 12px;
   overflow: hidden;
 }
 
 .reportCard h3 {
   margin: 0 0 9px;
-  font-size: 20px;
-  letter-spacing: -0.05em;
+  font-size: clamp(20px, 2vw, 28px);
 }
 
 table {
@@ -814,12 +964,13 @@ table {
 }
 
 th {
+  padding-bottom: 7px;
   text-align: left;
   color: var(--muted);
   font-size: 9px;
+  font-weight: 1000;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  padding-bottom: 7px;
 }
 
 td {
@@ -827,6 +978,24 @@ td {
   border-top: 1px solid var(--line);
   font-size: 14px;
   font-weight: 800;
+}
+
+td:first-child,
+th:first-child {
+  padding-left: 2px;
+}
+
+td:last-child,
+th:last-child {
+  text-align: right;
+}
+
+tbody tr {
+  transition: background 0.12s ease;
+}
+
+tbody tr:hover {
+  background: rgba(255, 240, 241, 0.45);
 }
 
 .entryList {
@@ -839,41 +1008,18 @@ td {
 }
 
 .entryRow {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: #fffaf2;
-  padding: 9px;
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 10px;
-}
-
-.entryRow strong {
-  font-size: 13px;
-}
-
-.entryRow p {
-  margin: 3px 0 0;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
 }
 
 .entryActions {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.entryActions span {
-  font-size: 15px;
-  font-weight: 1000;
-}
-
 .entryActions button {
-  height: 32px;
-  border: none;
+  height: 34px;
   border-radius: 11px;
   padding: 0 12px;
   font-size: 12px;
@@ -882,6 +1028,7 @@ td {
 
 .emptyText {
   color: var(--muted);
+  font-size: 13px;
   font-weight: 750;
 }
 
@@ -903,6 +1050,7 @@ td {
   display: block;
   font-size: 20px;
   line-height: 1;
+  font-weight: 1000;
 }
 
 .savedToast span {
@@ -941,7 +1089,7 @@ td {
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
   padding: 22px;
-  border-radius: 22px;
+  border-radius: var(--radius-xl);
   background: white;
   border: 1px solid var(--line);
   box-shadow: var(--shadow-strong);
@@ -960,26 +1108,12 @@ td {
 }
 
 .pinCard p {
-  margin: 0;
   color: var(--dq-red);
-  font-size: 10px;
-  font-weight: 950;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 .pinCard h1 {
-  margin: 5px 0 4px;
+  margin-top: 5px;
   font-size: 31px;
-  line-height: 1;
-  letter-spacing: -0.065em;
-}
-
-.pinCard > span {
-  display: block;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 750;
 }
 
 .pinCard form {
@@ -989,7 +1123,8 @@ td {
 }
 
 .pinCard input {
-  height: 50px;
+  width: 100%;
+  height: 52px;
   border: 1px solid var(--line-strong);
   border-radius: 15px;
   text-align: center;
@@ -1005,8 +1140,7 @@ td {
 }
 
 .pinCard button {
-  height: 46px;
-  border: none;
+  min-height: 46px;
   border-radius: 15px;
   font-size: 13px;
   font-weight: 1000;
@@ -1030,8 +1164,7 @@ td {
   display: grid;
   place-items: center;
   background: rgba(33, 24, 22, 0.5);
-
-    padding: 14px;
+  padding: 14px;
   overflow: auto;
 }
 
@@ -1046,38 +1179,18 @@ td {
 }
 
 .editHeader {
-  display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
   margin-bottom: 14px;
 }
 
-.editHeader p {
-  margin: 0;
-  color: var(--dq-red);
-  font-size: 10px;
-  font-weight: 950;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
 .editHeader h2 {
-  margin: 2px 0;
   font-size: 27px;
-  letter-spacing: -0.055em;
-}
-
-.editHeader span {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 750;
 }
 
 .editHeader button {
+  flex: 0 0 auto;
   width: 42px;
   height: 42px;
-  border: none;
   border-radius: 14px;
   background: var(--cream);
   color: var(--ink);
@@ -1087,11 +1200,12 @@ td {
 
 .editGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
 .editGrid label {
+  min-width: 0;
   display: grid;
   gap: 5px;
   color: var(--ink-soft);
@@ -1140,8 +1254,7 @@ td {
 }
 
 .editActions button {
-  height: 48px;
-  border: none;
+  min-height: 48px;
   border-radius: 15px;
   font-size: 14px;
   font-weight: 1000;
@@ -1154,136 +1267,11 @@ td {
 
 .cancelEditBtn {
   background: white;
-  border: 1px solid var(--line-strong) !important;
+  border: 1px solid var(--line-strong);
   color: var(--ink);
 }
 
-@media (max-height: 680px) {
-  .pinCard {
-    padding: 18px;
-  }
-
-  .pinBadge {
-    width: 46px;
-    height: 46px;
-    margin-bottom: 10px;
-  }
-
-  .pinCard h1 {
-    font-size: 27px;
-  }
-
-  .pinCard input {
-    height: 46px;
-    font-size: 22px;
-  }
-
-  .pinCard button {
-    height: 42px;
-  }
-}
-
-@media (max-width: 900px) {
-  .app {
-    height: auto;
-    min-height: 100dvh;
-    overflow: auto;
-  }
-
-  .kiosk,
-  .managerShell {
-    height: auto;
-    min-height: calc(100dvh - 24px);
-    grid-template-rows: auto;
-  }
-
-  .header,
-  .sectionTitle,
-  .managerTop,
-  .reportHeader {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .topStats,
-  .mainArea,
-  .managerWorkspace,
-  .reportGrid,
-  .insightStrip {
-    grid-template-columns: 1fr;
-  }
-
-  .managerStats {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .wasteRows,
-  .recentList {
-    grid-template-rows: none;
-  }
-
-  .wasteRow {
-    grid-template-columns: 1fr;
-  }
-
-  .itemPrice,
-  .qtyDisplay,
-  .rowTotal,
-  .qtyBtn {
-    height: 58px;
-  }
-
-  .actions,
-  .editGrid,
-  .editActions {
-    grid-template-columns: 1fr;
-  }
-
-  .monthPanel,
-  .reportPanel {
-    overflow: visible;
-  }
-
-  .monthGrid {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: none;
-  }
-
-  .reportPanel {
-    grid-template-rows: auto;
-  }
-}
-
-@media (max-width: 900px) {
-  .headerMeta {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .kioskClock {
-    min-width: 132px;
-    height: 46px;
-  }
-
-  .kioskClock strong {
-    font-size: 22px;
-  }
-}
-
-@media (max-width: 430px) {
-  .headerMeta {
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .kioskClock,
-  .managerBtn {
-    width: 100%;
-  }
-}
-
-/* Button motion polish: subtle enough for a work kiosk */
+/* Button motion polish */
 button,
 .qtyBtn,
 .clearBtn,
@@ -1298,12 +1286,42 @@ button,
 .entryActions button,
 .pinCard button,
 .editActions button {
+  user-select: none;
+  will-change: transform;
   transition:
     transform 0.14s ease,
     box-shadow 0.14s ease,
     filter 0.14s ease,
     background 0.14s ease;
-  -webkit-tap-highlight-color: transparent;
+}
+
+.submitBtn,
+.plus,
+.twoYearButton,
+.reportHeader button,
+.saveEditBtn,
+.pinCard button:not(.pinCancel) {
+  box-shadow:
+    0 12px 22px rgba(215, 25, 32, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.minus,
+.managerBtn,
+.annualButton,
+.managerTop button,
+.entryActions button {
+  box-shadow:
+    0 12px 22px rgba(33, 24, 22, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.clearBtn,
+.cancelEditBtn,
+.pinCancel {
+  box-shadow:
+    0 8px 18px rgba(80, 41, 28, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1323,6 +1341,13 @@ button,
     transform: translateY(-2px);
     filter: brightness(1.03);
     box-shadow: 0 14px 26px rgba(80, 41, 28, 0.18);
+  }
+
+  .recentCard:hover,
+  .entryRow:hover {
+    transform: translateY(-1px);
+    border-color: var(--line-strong);
+    background: #fff6e9;
   }
 }
 
@@ -1344,6 +1369,13 @@ button,
   box-shadow: 0 6px 14px rgba(80, 41, 28, 0.14);
 }
 
+.submitBtn,
+.clearBtn,
+.managerBtn {
+  position: relative;
+  overflow: hidden;
+}
+
 .submitBtn:not(:disabled)::after,
 .clearBtn:not(:disabled)::after,
 .managerBtn:not(:disabled)::after {
@@ -1352,13 +1384,6 @@ button,
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-}
-
-.submitBtn,
-.clearBtn,
-.managerBtn {
-  position: relative;
-  overflow: hidden;
 }
 
 .submitBtn:active::after,
@@ -1377,6 +1402,697 @@ button,
   }
 }
 
+/* Cleaner scrollbars for manager/edit areas only */
+.entryList,
+.pinCard,
+.editPanel {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(215, 25, 32, 0.45) rgba(255, 248, 237, 0.8);
+}
+
+.entryList::-webkit-scrollbar,
+.pinCard::-webkit-scrollbar,
+.editPanel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.entryList::-webkit-scrollbar-track,
+.pinCard::-webkit-scrollbar-track,
+.editPanel::-webkit-scrollbar-track {
+  background: rgba(255, 248, 237, 0.8);
+  border-radius: 999px;
+}
+
+.entryList::-webkit-scrollbar-thumb,
+.pinCard::-webkit-scrollbar-thumb,
+.editPanel::-webkit-scrollbar-thumb {
+  background: rgba(215, 25, 32, 0.45);
+  border-radius: 999px;
+}
+
+/* Big desktop screens */
+@media (min-width: 1281px) {
+  .kiosk,
+  .managerShell {
+    max-width: 1160px;
+  }
+
+  .kiosk {
+    grid-template-rows: 74px 104px minmax(0, 1fr) 82px;
+  }
+
+  .header {
+    min-height: 74px;
+  }
+
+  .topStats {
+    min-height: 104px;
+  }
+
+  .totalPanel,
+  .smallStat {
+    min-height: 104px;
+  }
+
+  .mainArea {
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+
+  .wasteRows {
+    grid-template-rows: repeat(5, minmax(76px, 1fr));
+  }
+
+  .wasteRow {
+    min-height: 76px;
+    grid-template-columns: minmax(150px, 1.15fr) 92px 66px 88px 66px 106px;
+  }
+
+  .itemName strong {
+    font-size: 27px;
+  }
+
+  .itemPrice,
+  .qtyDisplay,
+  .rowTotal,
+  .qtyBtn {
+    min-height: 58px;
+    height: 58px;
+  }
+
+  .actions {
+    min-height: 82px;
+  }
+
+  .clearBtn,
+  .submitBtn {
+    min-height: 62px;
+  }
+
+  .reportPanel {
+    grid-template-rows: 86px 124px 62px minmax(0, 1fr);
+  }
+
+  .managerStats {
+    min-height: 124px;
+  }
+
+  .managerStats div {
+    min-height: 124px;
+  }
+}
+
+/* Normal laptop / A9+ landscape range */
+@media (min-width: 901px) and (max-width: 1280px) {
+  .kiosk,
+  .managerShell {
+    max-width: 1120px;
+  }
+
+  .kiosk {
+    grid-template-rows: 72px 100px minmax(0, 1fr) 78px;
+  }
+
+  .header {
+    min-height: 72px;
+  }
+
+  .topStats {
+    min-height: 100px;
+  }
+
+  .totalPanel,
+  .smallStat {
+    min-height: 100px;
+  }
+
+  .brandIcon {
+    width: 46px;
+    height: 46px;
+  }
+
+  .brand h1 {
+    font-size: 29px;
+  }
+
+  .kioskClock {
+    min-width: 148px;
+    height: 48px;
+  }
+
+  .kioskClock strong {
+    font-size: 25px;
+  }
+
+  .mainArea {
+    grid-template-columns: minmax(0, 1fr) 235px;
+  }
+
+  .sectionTitle h2 {
+    font-size: 23px;
+  }
+
+  .sectionTitle p {
+    font-size: 11px;
+  }
+
+    .saveStatus {
+    max-width: 290px;
+    min-width: 210px;
+    font-size: 11px;
+  }
+
+  .wasteRows {
+    grid-template-rows: repeat(5, minmax(72px, 1fr));
+    gap: 7px;
+  }
+
+  .wasteRow {
+    min-height: 72px;
+    grid-template-columns: minmax(120px, 1.1fr) 80px 60px 78px 60px 92px;
+    gap: 7px;
+    padding: 7px;
+    border-radius: 17px;
+    box-shadow: 0 6px 16px rgba(80, 41, 28, 0.06);
+  }
+
+  .itemName strong {
+    font-size: 23px;
+  }
+
+  .itemPrice,
+  .qtyDisplay,
+  .rowTotal,
+  .qtyBtn {
+    min-height: 54px;
+    height: 54px;
+  }
+
+  .qtyBtn {
+    font-size: 29px;
+  }
+
+  .actions {
+    min-height: 78px;
+  }
+
+  .clearBtn,
+  .submitBtn {
+    min-height: 58px;
+  }
+
+  .managerWorkspace {
+    grid-template-columns: 330px minmax(0, 1fr);
+  }
+
+  .monthPanel {
+    grid-template-rows: 68px 96px minmax(0, 1fr);
+  }
+
+  .reportPanel {
+    grid-template-rows: 82px 118px 58px minmax(0, 1fr);
+  }
+
+  .reportHeader {
+    min-height: 82px;
+  }
+
+  .managerStats {
+    min-height: 118px;
+    gap: 8px;
+  }
+
+  .managerStats div {
+    min-height: 118px;
+    padding: 11px 10px;
+  }
+
+  .managerStats strong {
+    font-size: 32px;
+  }
+
+  .managerStats span {
+    font-size: 12px;
+  }
+
+  .insightStrip,
+  .insightStrip div {
+    min-height: 58px;
+  }
+
+  .reportGrid {
+    gap: 9px;
+  }
+
+  .reportCard {
+    padding: 11px;
+  }
+
+  td {
+    padding: 7px 0;
+  }
+
+  .recentCard {
+    min-height: 54px;
+  }
+}
+
+/* Short PC screens: main kiosk does NOT scroll; manager can breathe */
+@media (min-width: 901px) and (max-height: 760px) {
+  body,
+  .app,
+  .kiosk {
+    overflow: hidden;
+  }
+
+  .kiosk {
+    height: calc(100dvh - 24px);
+    grid-template-rows: 66px 88px minmax(0, 1fr) 70px;
+  }
+
+  .header {
+    min-height: 66px;
+    padding: 8px 14px;
+  }
+
+  .brandIcon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .brand h1 {
+    font-size: 26px;
+  }
+
+  .kioskClock {
+    height: 44px;
+    min-width: 142px;
+  }
+
+  .kioskClock strong {
+    font-size: 22px;
+  }
+
+  .kioskClock span {
+    font-size: 8px;
+  }
+
+  .topStats {
+    min-height: 88px;
+  }
+
+  .totalPanel,
+  .smallStat {
+    min-height: 88px;
+    padding: 10px 13px;
+  }
+
+  .totalPanel strong,
+  .smallStat strong {
+    font-size: 28px;
+  }
+
+  .totalPanel span,
+  .smallStat span {
+    font-size: 11px;
+    margin-top: 5px;
+  }
+
+  .sectionTitle h2 {
+    font-size: 21px;
+  }
+
+  .sectionTitle p {
+    display: none;
+  }
+
+  .saveStatus {
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  .wasteRows {
+    grid-template-rows: repeat(5, minmax(62px, 1fr));
+    gap: 6px;
+  }
+
+  .wasteRow {
+    min-height: 62px;
+    padding: 6px;
+    grid-template-columns: minmax(105px, 1.1fr) 74px 54px 70px 54px 84px;
+    gap: 6px;
+  }
+
+  .itemName span {
+    margin-bottom: 3px;
+    padding: 3px 7px;
+    font-size: 7px;
+  }
+
+  .itemName strong {
+    font-size: 21px;
+  }
+
+  .itemPrice,
+  .qtyDisplay,
+  .rowTotal,
+  .qtyBtn {
+    min-height: 46px;
+    height: 46px;
+  }
+
+  .itemPrice strong,
+  .rowTotal strong {
+    font-size: 14px;
+  }
+
+  .qtyDisplay strong {
+    font-size: 24px;
+  }
+
+  .qtyBtn {
+    font-size: 26px;
+  }
+
+  .actions {
+    min-height: 70px;
+    padding: 8px;
+  }
+
+  .clearBtn,
+  .submitBtn {
+    min-height: 52px;
+    font-size: 16px;
+  }
+
+  .recentCard {
+    min-height: 48px;
+  }
+
+  .recentCard strong {
+    font-size: 12px;
+  }
+
+  .recentCard p {
+    font-size: 9px;
+  }
+
+  .managerShell {
+    height: auto;
+    min-height: calc(100dvh - 24px);
+    overflow: visible;
+    grid-template-rows: 74px auto;
+  }
+
+  .managerWorkspace {
+    min-height: 0;
+  }
+
+  .reportPanel {
+    grid-template-rows: auto auto auto auto;
+    overflow: visible;
+  }
+
+  .managerStats {
+    min-height: 0;
+  }
+
+  .managerStats div {
+    min-height: 116px;
+  }
+
+  .reportGrid {
+    min-height: 360px;
+  }
+
+  .entryList {
+    max-height: 320px;
+  }
+}
+
+/* Tablet portrait and smaller screens can scroll because layout stacks */
+@media (max-width: 900px) {
+  body {
+    overflow: auto;
+  }
+
+  .app {
+    height: auto;
+    min-height: 100dvh;
+    padding-bottom: 18px;
+    overflow: auto;
+  }
+
+  .kiosk,
+  .managerShell {
+    height: auto;
+    min-height: calc(100dvh - 24px);
+    grid-template-rows: auto;
+    overflow: visible;
+  }
+
+  .header,
+  .sectionTitle,
+  .managerTop,
+  .reportHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .brand,
+  .headerMeta {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .headerMeta {
+    display: grid;
+    grid-template-columns: 1fr auto;
+  }
+
+  .managerBtn {
+    min-width: 112px;
+  }
+
+  .topStats,
+  .mainArea,
+  .managerWorkspace,
+  .reportGrid,
+  .insightStrip {
+    grid-template-columns: 1fr;
+  }
+
+  .managerStats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .wasteRows,
+  .recentList {
+    grid-template-rows: none;
+  }
+
+  .wasteRow {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    min-height: 0;
+    padding: 12px;
+  }
+
+  .itemName strong {
+    font-size: 28px;
+  }
+
+  .itemPrice,
+  .qtyDisplay,
+  .rowTotal,
+  .qtyBtn {
+    min-height: 58px;
+    height: 58px;
+  }
+
+  .qtyBtn {
+    font-size: 34px;
+  }
+
+  .actions,
+  .editGrid,
+  .editActions {
+    grid-template-columns: 1fr;
+  }
+
+  .submitBtn,
+  .clearBtn {
+    font-size: 18px;
+  }
+
+  .saveStatus {
+    max-width: none;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .recentArea {
+    min-height: 300px;
+  }
+
+  .monthPanel,
+  .reportPanel {
+    overflow: visible;
+    grid-template-rows: auto;
+  }
+
+  .monthGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+  }
+
+  .reportPanel {
+    grid-template-rows: auto;
+  }
+
+  .managerStats {
+    min-height: 0;
+  }
+
+  .managerStats div {
+    min-height: 120px;
+  }
+
+  .reportHeader,
+  .insightStrip,
+  .insightStrip div {
+    min-height: 0;
+  }
+
+  .entryList {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .header,
+  .entryArea,
+  .recentArea,
+  .actions,
+  .totalPanel,
+  .smallStat,
+  .managerTop,
+  .monthPanel,
+  .reportPanel {
+    box-shadow: 0 10px 24px rgba(80, 41, 28, 0.09);
+  }
+}
+
+/* Phone cleanup */
+@media (max-width: 520px) {
+  .app {
+    padding: 10px;
+  }
+
+  .headerMeta {
+    align-items: stretch;
+    gap: 8px;
+    grid-template-columns: 1fr;
+  }
+
+  .kioskClock,
+  .managerBtn {
+    width: 100%;
+  }
+
+  .brand {
+    align-items: flex-start;
+  }
+
+  .brand h1 {
+    font-size: 28px;
+  }
+
+  .topStats {
+    gap: 8px;
+  }
+
+  .totalPanel strong,
+  .smallStat strong {
+    font-size: 30px;
+  }
+
+  .managerStats {
+    grid-template-columns: 1fr;
+  }
+
+  .managerStats div {
+    min-height: 118px;
+  }
+
+  .monthGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .recentCard,
+  .entryRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .entryActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .savedToast {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    min-width: 0;
+  }
+}
+
+/* Tiny phone cleanup */
+@media (max-width: 380px) {
+  .brandIcon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+  }
+
+  .brand h1 {
+    font-size: 25px;
+  }
+
+  .kioskClock strong {
+    font-size: 21px;
+  }
+
+  .kioskClock span {
+    font-size: 8px;
+  }
+}
+
+/* Mounted tablet landscape guard: no scrolling on main kiosk */
+@media (orientation: landscape) and (min-width: 901px) {
+  body,
+  .app,
+  .kiosk,
+  .mainArea,
+  .entryArea,
+  .recentArea,
+  .wasteRows,
+  .recentList,
+  .actions {
+    overflow: hidden;
+  }
+
+  .kiosk,
+  .managerShell {
+    max-height: calc(100dvh - 20px);
+  }
+
+  .kiosk {
+    height: calc(100dvh - 24px);
+  }
+}
+
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   button,
   .qtyBtn,
@@ -1400,708 +2116,218 @@ button,
   .managerBtn:active::after {
     animation: none;
   }
-}
-
-/* Final bottom action polish */
-.actions {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  gap: 12px;
-  align-items: stretch;
-  grid-template-columns: minmax(160px, 0.36fr) 1fr;
-}
-
-.clearBtn,
-.submitBtn {
-  min-height: 62px;
-  height: 100%;
-  border-radius: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  font-size: clamp(16px, 1.65vw, 21px);
-  letter-spacing: -0.035em;
-  line-height: 1;
-  box-shadow: 0 16px 32px rgba(80, 41, 28, 0.16);
-  isolation: isolate;
-}
-
-.clearBtn {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 248, 237, 0.96));
-  border: 1px solid rgba(220, 201, 183, 0.95) !important;
-  color: var(--ink);
-}
-
-.submitBtn {
-  background:
-    linear-gradient(135deg, #ef3038 0%, var(--dq-red) 45%, var(--dq-red-dark) 100%);
-  border: 1px solid rgba(215, 25, 32, 0.24) !important;
-  color: white;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
-  box-shadow:
-    0 18px 36px rgba(169, 15, 24, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-}
-
-.clearBtn::before,
-.submitBtn::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0));
-  pointer-events: none;
-  z-index: -1;
-}
-
-.clearBtn::after,
-.submitBtn::after {
-  border-radius: inherit;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .clearBtn:hover,
-  .submitBtn:hover {
-    transform: translateY(-2px);
-  }
-
-  .submitBtn:hover {
-    box-shadow:
-      0 22px 42px rgba(169, 15, 24, 0.28),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  }
-}
-
-@media (max-width: 760px) {
-  .actions {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .clearBtn,
-  .submitBtn {
-    min-height: 56px;
-    font-size: 16px;
-  }
-}
-
-@media (max-height: 640px) and (min-width: 760px) {
-  .clearBtn,
-  .submitBtn {
-    min-height: 58px;
-    border-radius: 20px;
-  }
-
-/* ---------------------------------------------------------
-   Device optimization pass
-   Targets:
-   - Samsung Galaxy Tab A9+ 11 inch kiosk landscape: 1920x1200 / 16:10
-   - Desktop / laptop management use
-   - Phone fallback
---------------------------------------------------------- */
-
-/* Safer viewport behavior across Android Chrome, kiosk mode, and desktop */
-html,
-body,
-#root {
-  min-height: 100%;
-  overflow-x: hidden;
-}
-
-.app {
-  min-width: 320px;
-}
-
-/* Better full desktop spacing without stretching the kiosk too wide */
-@media (min-width: 1281px) {
-  .kiosk,
-  .managerShell {
-    max-width: 1260px;
-  }
-
-  .mainArea {
-    grid-template-columns: minmax(0, 1fr) 260px;
-  }
-
-  .managerWorkspace {
-    grid-template-columns: 360px minmax(0, 1fr);
-  }
-}
-
-/* Main tablet target: Galaxy Tab A9+ 11 inch in landscape/kiosk mode */
-@media (min-width: 901px) and (max-width: 1280px) and (orientation: landscape) {
-  .app {
-    padding: 10px;
-  }
-
-  .kiosk {
-    height: calc(100dvh - 20px);
-    max-width: 100%;
-    grid-template-rows: 64px 86px minmax(0, 1fr) 66px;
-    gap: 9px;
-  }
-
-  .header,
-  .totalPanel,
-  .smallStat,
-  .entryArea,
-  .recentArea {
-    border-radius: 20px;
-  }
-
-  .brandIcon {
-    width: 42px;
-    height: 42px;
-    border-radius: 14px;
-    font-size: 16px;
-  }
-
-  .brand h1 {
-    font-size: clamp(24px, 2.25vw, 28px);
-  }
-
-  .kioskClock {
-    min-width: 136px;
-    height: 44px;
-    padding: 4px 12px;
-  }
-
-  .kioskClock strong {
-    font-size: 22px;
-  }
-
-  .managerBtn {
-    height: 38px;
-    padding: 0 16px;
-  }
-
-  .topStats {
-    grid-template-columns: 1.35fr 1fr 1fr;
-    gap: 9px;
-  }
-
-  .totalPanel,
-  .smallStat {
-    padding: 11px 14px;
-  }
-
-  .totalPanel strong,
-  .smallStat strong {
-    font-size: clamp(23px, 2.5vw, 28px);
-  }
-
-  .mainArea {
-    grid-template-columns: minmax(0, 1fr) 220px;
-    gap: 9px;
-  }
-
-  .entryArea,
-  .recentArea {
-    padding: 10px;
-  }
-
-  .sectionTitle h2 {
-    font-size: clamp(19px, 2vw, 23px);
-  }
-
-  .sectionTitle p {
-    font-size: 11px;
-  }
-
-  .saveStatus {
-    max-width: 245px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .wasteRows {
-    gap: 7px;
-  }
-
-  .wasteRow {
-    grid-template-columns:
-      minmax(130px, 1.15fr)
-      minmax(74px, 0.62fr)
-      56px
-      minmax(76px, 0.58fr)
-      56px
-      minmax(82px, 0.7fr);
-    gap: 7px;
-    padding: 7px;
-    border-radius: 17px;
-  }
-
-  .itemName strong {
-    font-size: clamp(18px, 2vw, 22px);
-  }
-
-  .itemPrice,
-  .qtyDisplay,
-  .rowTotal,
-  .qtyBtn {
-    height: 50px;
-    border-radius: 14px;
-  }
-
-  .qtyBtn {
-    font-size: 27px;
-  }
-
-  .qtyDisplay strong {
-    font-size: 25px;
-  }
-
-  .actions {
-    grid-template-columns: minmax(150px, 0.34fr) 1fr;
-    gap: 10px;
-  }
-
-  .clearBtn,
-  .submitBtn {
-    min-height: 58px;
-    border-radius: 20px;
-  }
-
-  .recentCard {
-    padding: 8px;
-  }
-
-  .recentCard strong {
-    font-size: 12px;
-  }
-}
-
-/* Tablet portrait and narrow tablets: stack cleanly without crushing text */
-@media (min-width: 761px) and (max-width: 900px) {
-  .app {
-    padding: 12px;
-    overflow: auto;
-  }
-
-  .kiosk,
-  .managerShell {
-    height: auto;
-    min-height: calc(100dvh - 24px);
-    max-width: 720px;
-  }
-
-  .header {
-    flex-direction: row;
-    align-items: center;
-  }
-
-  .headerMeta {
-    width: auto;
-  }
-
-  .wasteRow {
-    grid-template-columns: 1.2fr 0.7fr 62px 0.7fr 62px 0.8fr;
-  }
-}
-
-/* Manager dashboard on desktop and tablet: keep cards readable */
-@media (min-width: 901px) and (max-width: 1280px) {
-  .managerShell {
-    height: calc(100dvh - 20px);
-    max-width: 100%;
-    grid-template-rows: 66px minmax(0, 1fr);
-    gap: 9px;
-  }
-
-  .managerWorkspace {
-    grid-template-columns: 320px minmax(0, 1fr);
-    gap: 9px;
-  }
-
-  .monthPanel,
-  .reportPanel {
-    padding: 10px;
-    border-radius: 20px;
-  }
-
-  .monthPanel {
-    grid-template-rows: 64px 92px minmax(0, 1fr);
-  }
-
-  .reportPanel {
-    grid-template-rows: 76px 82px 54px minmax(0, 1fr);
-  }
-
-  .managerTop h1 {
-    font-size: clamp(24px, 2.5vw, 29px);
-  }
-
-  .reportHeader h2 {
-    font-size: clamp(20px, 2vw, 24px);
-  }
-
-  .managerStats strong {
-    font-size: clamp(19px, 2vw, 23px);
-  }
-
-  .reportCard h3 {
-    font-size: 18px;
-  }
-
-  td {
-    font-size: 13px;
-  }
-}
-
-/* Phone mode: bigger tap targets, no horizontal squeeze, full scrolling */
-@media (max-width: 760px) {
-  .app {
-    padding: 10px;
-    overflow: auto;
-  }
-
-  .kiosk,
-  .managerShell {
-    width: 100%;
-    min-height: calc(100dvh - 20px);
-  }
-
-  .brand h1,
-  .managerTop h1 {
-    font-size: 28px;
-  }
-
-  .topStats,
-  .mainArea,
-  .managerWorkspace,
-  .reportGrid,
-  .managerStats,
-  .insightStrip {
-    grid-template-columns: 1fr;
-  }
-
-  .header,
-  .sectionTitle,
-  .managerTop,
-  .reportHeader {
-    align-items: stretch;
-  }
-
-  .headerMeta {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .kioskClock,
-  .managerBtn {
-    width: 100%;
-  }
-
-  .wasteRow {
-    grid-template-columns: 1fr 1fr;
-    gap: 9px;
-  }
-
-  .itemName,
-  .rowTotal {
-    grid-column: 1 / -1;
-  }
-
-  .itemName strong {
-    font-size: 25px;
-  }
-
-  .itemPrice,
-  .qtyDisplay,
-  .rowTotal,
-  .qtyBtn {
-    min-height: 58px;
-  }
-
-  .qtyBtn {
-    font-size: 31px;
-  }
-
-  .saveStatus {
-    width: 100%;
-    text-align: center;
-  }
-
-  .recentArea {
-    display: block;
-  }
-
-  .recentList {
-    margin-top: 10px;
-  }
-
-  .monthGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .reportHeader button,
-  .annualButton,
-  .twoYearButton,
-  .entryActions button,
-  .editActions button {
-    min-height: 46px;
-  }
 
   .savedToast {
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
-    min-width: 0;
+    animation: none;
   }
 }
 
-/* Very small phones */
-@media (max-width: 430px) {
+/* Final feel enhancement layer */
+
+.header,
+.entryArea,
+.recentArea,
+.totalPanel,
+.smallStat,
+.actions,
+.managerTop,
+.monthPanel,
+.reportPanel {
+  position: relative;
+}
+
+.header::before,
+.entryArea::before,
+.recentArea::before,
+.totalPanel::before,
+.smallStat::before,
+.actions::before,
+.managerTop::before,
+.monthPanel::before,
+.reportPanel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.55),
+    rgba(255, 255, 255, 0) 38%
+  );
+}
+
+/* More confident plus/minus button feel */
+.qtyBtn {
+  display: grid;
+  place-items: center;
+}
+
+.qtyBtn:active {
+  transform: scale(0.94);
+}
+
+/* Make the submit button feel like the main action */
+.submitBtn {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent 38%),
+    linear-gradient(135deg, var(--dq-red), var(--dq-red-dark));
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Cleaner clear button */
+.clearBtn {
+  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Better status pill */
+.saveStatus {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+/* Make selected month feel more obvious */
+.activeMonthTile {
+  box-shadow:
+    0 14px 26px rgba(215, 25, 32, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+/* Better saved popup */
+.savedToast {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 42%),
+    var(--ink);
+}
+
+/* Slightly cleaner recent cards */
+.recentCard,
+.entryRow {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* Make table rows easier to read */
+tbody tr:nth-child(even) {
+  background: rgba(255, 248, 237, 0.5);
+}
+
+/* Prevent accidental blue tap flash on Android */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Kiosk screen should feel locked in place */
+@media (orientation: landscape) and (min-width: 901px) {
   .app {
-    padding: 8px;
+    overscroll-behavior: none;
   }
 
-  .headerMeta {
-    grid-template-columns: 1fr;
-  }
-
-  .brand h1,
-  .managerTop h1,
-  .pinCard h1 {
-    font-size: 26px;
-  }
-
-  .wasteRow {
-    grid-template-columns: 1fr;
-  }
-
-  .itemName,
-  .rowTotal {
-    grid-column: auto;
-  }
-
-  .clearBtn,
-  .submitBtn {
-    min-height: 56px;
-  }
-}
-
-/* =========================================================
-   FINAL CLEAN A9 KIOSK SIZE OVERRIDE
-   This replaces the messy force block and keeps the file valid.
-   It only affects the main employee kiosk screen on tablet/desktop.
-   ========================================================= */
-
-@media (min-width: 901px) {
   .kiosk {
-    max-width: 1260px;
-    grid-template-rows: 86px 118px minmax(0, 1fr) 112px;
-    gap: 9px;
-  }
-
-  .kiosk .brandIcon {
-    width: 58px;
-    height: 58px;
-    font-size: 25px;
-    border-radius: 20px;
-  }
-
-  .kiosk .brand h1 {
-    font-size: 48px;
-    line-height: 0.9;
-  }
-
-  .kiosk .brand p,
-  .kiosk .headerMeta p {
-    font-size: 14px;
-    letter-spacing: 0.08em;
-  }
-
-  .kiosk .kioskClock {
-    min-width: 182px;
-    height: 62px;
-    padding: 6px 16px;
-  }
-
-  .kiosk .kioskClock strong {
-    font-size: 35px;
-    line-height: 0.92;
-  }
-
-  .kiosk .kioskClock span {
-    font-size: 12px;
-  }
-
-  .kiosk .managerBtn {
-    min-width: 220px;
-    height: 62px;
-    font-size: 20px;
-    border-radius: 20px;
-    font-weight: 1000;
-  }
-
-  .kiosk .totalPanel,
-  .kiosk .smallStat {
-    padding: 16px 20px;
-    border-radius: 24px;
-  }
-
-  .kiosk .totalPanel p,
-  .kiosk .smallStat p {
-    font-size: 14px;
-    letter-spacing: 0.08em;
-  }
-
-  .kiosk .totalPanel strong,
-  .kiosk .smallStat strong {
-    font-size: 54px;
-    line-height: 0.92;
-  }
-
-  .kiosk .totalPanel span,
-  .kiosk .smallStat span {
-    font-size: 15px;
-  }
-
-  .kiosk .mainArea {
-    grid-template-columns: minmax(0, 1fr) 255px;
-    gap: 10px;
-  }
-
-  .kiosk .entryArea,
-  .kiosk .recentArea {
-    padding: 10px;
-    border-radius: 24px;
-  }
-
-  .kiosk .sectionTitle h2 {
-    font-size: 42px;
-    line-height: 0.94;
-  }
-
-  .kiosk .sectionTitle p {
-    font-size: 18px;
-  }
-
-  .kiosk .saveStatus {
-    font-size: 15px;
-    padding: 10px 14px;
-    font-weight: 1000;
-  }
-
-  .kiosk .wasteRows {
-    gap: 7px;
-  }
-
-  .kiosk .wasteRow {
-    grid-template-columns:
-      minmax(150px, 1fr)
-      minmax(92px, 0.55fr)
-      92px
-      minmax(92px, 0.5fr)
-      92px
-      minmax(108px, 0.62fr);
-    gap: 8px;
-    padding: 7px;
-    border-radius: 22px;
-  }
-
-  .kiosk .itemName span {
-    font-size: 11px;
-    padding: 5px 10px;
-  }
-
-  .kiosk .itemName strong {
-    font-size: 42px;
-    line-height: 0.9;
-  }
-
-  .kiosk .itemPrice,
-  .kiosk .qtyDisplay,
-  .kiosk .rowTotal,
-  .kiosk .qtyBtn {
-    height: 72px;
-    min-height: 72px;
-    border-radius: 19px;
-  }
-
-  .kiosk .itemPrice p,
-  .kiosk .qtyDisplay p,
-  .kiosk .rowTotal p {
-    font-size: 12px;
-    letter-spacing: 0.08em;
-  }
-
-  .kiosk .itemPrice strong,
-  .kiosk .rowTotal strong {
-    font-size: 34px;
-    line-height: 0.92;
-  }
-
-  .kiosk .qtyDisplay strong {
-    font-size: 70px;
-    line-height: 0.75;
-  }
-
-  .kiosk .qtyBtn {
-    width: 92px;
-    min-width: 92px;
-    font-size: 76px;
-    line-height: 0.7;
-    font-weight: 1000;
-  }
-
-  .kiosk .recentArea .sectionTitle h2 {
-    font-size: 34px;
-  }
-
-  .kiosk .recentArea .sectionTitle p {
-    font-size: 15px;
-  }
-
-  .kiosk .recentCard {
-    padding: 10px;
-    border-radius: 18px;
-  }
-
-  .kiosk .recentCard strong {
-    font-size: 21px;
-  }
-
-  .kiosk .recentCard p {
-    font-size: 15px;
-  }
-
-  .kiosk .recentCard span {
-    font-size: 24px;
-  }
-
-  .kiosk .actions {
-    grid-template-columns: minmax(190px, 0.36fr) 1fr;
-    gap: 12px;
-  }
-
-  .kiosk .clearBtn,
-  .kiosk .submitBtn {
-    min-height: 86px;
-    height: 86px;
-    border-radius: 26px;
-    font-weight: 1000;
-  }
-
-  .kiosk .clearBtn {
-    font-size: 30px;
-  }
-
-  .kiosk .submitBtn {
-    font-size: 36px;
-  }
-
-  .kiosk .kioskSignature {
-    font-size: 15px;
-    font-weight: 950;
+    touch-action: manipulation;
   }
 }
 
+/* Professional feedback layer */
 
+/* Soft loading/saving feel */
+.saveStatus {
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.saveStatus:hover {
+  transform: translateY(-1px);
+}
+
+/* Make quantity numbers feel more important */
+.qtyDisplay strong {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Better separation between item rows */
+.wasteRow {
+  box-shadow:
+    0 6px 14px rgba(80, 41, 28, 0.055),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+/* Make row controls feel grouped */
+.itemPrice,
+.qtyDisplay,
+.rowTotal {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+/* Slightly stronger main action */
+.submitBtn {
+  box-shadow:
+    0 16px 28px rgba(215, 25, 32, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+/* Make submit button breathe without being flashy */
+@media (prefers-reduced-motion: no-preference) {
+  .submitBtn:not(:disabled) {
+    animation: submitBreath 3.2s ease-in-out infinite;
+  }
+
+  @keyframes submitBreath {
+    0%,
+    100% {
+      box-shadow:
+        0 14px 24px rgba(215, 25, 32, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.26);
+    }
+
+    50% {
+      box-shadow:
+        0 18px 32px rgba(215, 25, 32, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
+/* Cleaner manager report cards */
+.reportCard {
+  box-shadow:
+    0 10px 24px rgba(80, 41, 28, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+/* Make manager stat cards feel cleaner */
+.managerStats div {
+  box-shadow:
+    0 10px 22px rgba(80, 41, 28, 0.085),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+/* Softer month buttons */
+.monthTile {
+  box-shadow:
+    0 8px 18px rgba(80, 41, 28, 0.075),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+/* Make empty states look intentional */
+.emptyState strong,
+.emptyReport h2 {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Slightly better readable labels */
+.itemPrice p,
+.qtyDisplay p,
+.rowTotal p,
+.totalPanel p,
+.smallStat p,
+.managerStats p {
+  opacity: 0.92;
+}
+
+/* Pressed buttons feel physical */
+button:active {
+  transform: translateY(1px) scale(0.98);
 }
