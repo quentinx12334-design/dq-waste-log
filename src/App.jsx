@@ -106,6 +106,31 @@ function App() {
     return () => window.clearInterval(clockTimer)
   }, [])
 
+useEffect(() => {
+  function getNextTwoAM() {
+    const now = new Date()
+    const nextTwoAM = new Date()
+
+    nextTwoAM.setHours(2, 0, 0, 0)
+
+    if (nextTwoAM <= now) {
+      nextTwoAM.setDate(nextTwoAM.getDate() + 1)
+    }
+
+    return nextTwoAM
+  }
+
+  const nextRefresh = getNextTwoAM()
+  const delayUntilRefresh = nextRefresh.getTime() - Date.now()
+
+  const refreshTimer = window.setTimeout(() => {
+    window.location.reload()
+  }, delayUntilRefresh)
+
+  return () => window.clearTimeout(refreshTimer)
+}, [])
+
+
   async function loadRecentEntries() {
     try {
       const response = await fetch(`${API_BASE}/api/entries/recent?limit=10`)
