@@ -1,5 +1,5 @@
 :root {
-  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: system-ui, "Segoe UI Variable Text", "Segoe UI", Roboto, Arial, sans-serif;
   color: #211816;
   background: #fff8ed;
   font-synthesis: none;
@@ -20,6 +20,9 @@ body,
   min-height: 100vh;
 }
 
-button {
+button,
+input,
+select,
+textarea {
   font-family: inherit;
 }
