@@ -498,17 +498,16 @@ button:disabled {
   margin: 0 auto;
   display: grid;
   grid-template-rows: 70px 1fr;
-  gap: 10px;
+
+    gap: 10px;
   overflow: hidden;
 }
-
 
 .managerTop,
 .managerWorkspace {
   position: relative;
   z-index: 1;
 }
-
 
 .managerTop {
   border-radius: 22px;
@@ -1031,7 +1030,8 @@ td {
   display: grid;
   place-items: center;
   background: rgba(33, 24, 22, 0.5);
-  padding: 14px;
+
+    padding: 14px;
   overflow: auto;
 }
 
@@ -1255,8 +1255,6 @@ td {
   }
 }
 
-
-
 @media (max-width: 900px) {
   .headerMeta {
     width: 100%;
@@ -1284,7 +1282,6 @@ td {
     width: 100%;
   }
 }
-
 
 /* Button motion polish: subtle enough for a work kiosk */
 button,
@@ -1374,6 +1371,7 @@ button,
   0% {
     box-shadow: inset 0 0 0 0 rgba(255, 255, 255, 0.32);
   }
+
   100% {
     box-shadow: inset 0 0 0 999px rgba(255, 255, 255, 0);
   }
@@ -1403,7 +1401,6 @@ button,
     animation: none;
   }
 }
-
 
 /* Final bottom action polish */
 .actions {
@@ -1498,4 +1495,613 @@ button,
     min-height: 58px;
     border-radius: 20px;
   }
+
+/* ---------------------------------------------------------
+   Device optimization pass
+   Targets:
+   - Samsung Galaxy Tab A9+ 11 inch kiosk landscape: 1920x1200 / 16:10
+   - Desktop / laptop management use
+   - Phone fallback
+--------------------------------------------------------- */
+
+/* Safer viewport behavior across Android Chrome, kiosk mode, and desktop */
+html,
+body,
+#root {
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+.app {
+  min-width: 320px;
+}
+
+/* Better full desktop spacing without stretching the kiosk too wide */
+@media (min-width: 1281px) {
+  .kiosk,
+  .managerShell {
+    max-width: 1260px;
+  }
+
+  .mainArea {
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+
+  .managerWorkspace {
+    grid-template-columns: 360px minmax(0, 1fr);
+  }
+}
+
+/* Main tablet target: Galaxy Tab A9+ 11 inch in landscape/kiosk mode */
+@media (min-width: 901px) and (max-width: 1280px) and (orientation: landscape) {
+  .app {
+    padding: 10px;
+  }
+
+  .kiosk {
+    height: calc(100dvh - 20px);
+    max-width: 100%;
+    grid-template-rows: 64px 86px minmax(0, 1fr) 66px;
+    gap: 9px;
+  }
+
+  .header,
+  .totalPanel,
+  .smallStat,
+  .entryArea,
+  .recentArea {
+    border-radius: 20px;
+  }
+
+  .brandIcon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    font-size: 16px;
+  }
+
+  .brand h1 {
+    font-size: clamp(24px, 2.25vw, 28px);
+  }
+
+  .kioskClock {
+    min-width: 136px;
+    height: 44px;
+    padding: 4px 12px;
+  }
+
+  .kioskClock strong {
+    font-size: 22px;
+  }
+
+  .managerBtn {
+    height: 38px;
+    padding: 0 16px;
+  }
+
+  .topStats {
+    grid-template-columns: 1.35fr 1fr 1fr;
+    gap: 9px;
+  }
+
+  .totalPanel,
+  .smallStat {
+    padding: 11px 14px;
+  }
+
+  .totalPanel strong,
+  .smallStat strong {
+    font-size: clamp(23px, 2.5vw, 28px);
+  }
+
+  .mainArea {
+    grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 9px;
+  }
+
+  .entryArea,
+  .recentArea {
+    padding: 10px;
+  }
+
+  .sectionTitle h2 {
+    font-size: clamp(19px, 2vw, 23px);
+  }
+
+  .sectionTitle p {
+    font-size: 11px;
+  }
+
+  .saveStatus {
+    max-width: 245px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .wasteRows {
+    gap: 7px;
+  }
+
+  .wasteRow {
+    grid-template-columns:
+      minmax(130px, 1.15fr)
+      minmax(74px, 0.62fr)
+      56px
+      minmax(76px, 0.58fr)
+      56px
+      minmax(82px, 0.7fr);
+    gap: 7px;
+    padding: 7px;
+    border-radius: 17px;
+  }
+
+  .itemName strong {
+    font-size: clamp(18px, 2vw, 22px);
+  }
+
+  .itemPrice,
+  .qtyDisplay,
+  .rowTotal,
+  .qtyBtn {
+    height: 50px;
+    border-radius: 14px;
+  }
+
+  .qtyBtn {
+    font-size: 27px;
+  }
+
+  .qtyDisplay strong {
+    font-size: 25px;
+  }
+
+  .actions {
+    grid-template-columns: minmax(150px, 0.34fr) 1fr;
+    gap: 10px;
+  }
+
+  .clearBtn,
+  .submitBtn {
+    min-height: 58px;
+    border-radius: 20px;
+  }
+
+  .recentCard {
+    padding: 8px;
+  }
+
+  .recentCard strong {
+    font-size: 12px;
+  }
+}
+
+/* Tablet portrait and narrow tablets: stack cleanly without crushing text */
+@media (min-width: 761px) and (max-width: 900px) {
+  .app {
+    padding: 12px;
+    overflow: auto;
+  }
+
+  .kiosk,
+  .managerShell {
+    height: auto;
+    min-height: calc(100dvh - 24px);
+    max-width: 720px;
+  }
+
+  .header {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .headerMeta {
+    width: auto;
+  }
+
+  .wasteRow {
+    grid-template-columns: 1.2fr 0.7fr 62px 0.7fr 62px 0.8fr;
+  }
+}
+
+/* Manager dashboard on desktop and tablet: keep cards readable */
+@media (min-width: 901px) and (max-width: 1280px) {
+  .managerShell {
+    height: calc(100dvh - 20px);
+    max-width: 100%;
+    grid-template-rows: 66px minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .managerWorkspace {
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .monthPanel,
+  .reportPanel {
+    padding: 10px;
+    border-radius: 20px;
+  }
+
+  .monthPanel {
+    grid-template-rows: 64px 92px minmax(0, 1fr);
+  }
+
+  .reportPanel {
+    grid-template-rows: 76px 82px 54px minmax(0, 1fr);
+  }
+
+  .managerTop h1 {
+    font-size: clamp(24px, 2.5vw, 29px);
+  }
+
+  .reportHeader h2 {
+    font-size: clamp(20px, 2vw, 24px);
+  }
+
+  .managerStats strong {
+    font-size: clamp(19px, 2vw, 23px);
+  }
+
+  .reportCard h3 {
+    font-size: 18px;
+  }
+
+  td {
+    font-size: 13px;
+  }
+}
+
+/* Phone mode: bigger tap targets, no horizontal squeeze, full scrolling */
+@media (max-width: 760px) {
+  .app {
+    padding: 10px;
+    overflow: auto;
+  }
+
+  .kiosk,
+  .managerShell {
+    width: 100%;
+    min-height: calc(100dvh - 20px);
+  }
+
+  .brand h1,
+  .managerTop h1 {
+    font-size: 28px;
+  }
+
+  .topStats,
+  .mainArea,
+  .managerWorkspace,
+  .reportGrid,
+  .managerStats,
+  .insightStrip {
+    grid-template-columns: 1fr;
+  }
+
+  .header,
+  .sectionTitle,
+  .managerTop,
+  .reportHeader {
+    align-items: stretch;
+  }
+
+  .headerMeta {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .kioskClock,
+  .managerBtn {
+    width: 100%;
+  }
+
+  .wasteRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .itemName,
+  .rowTotal {
+    grid-column: 1 / -1;
+  }
+
+  .itemName strong {
+    font-size: 25px;
+  }
+
+  .itemPrice,
+  .qtyDisplay,
+  .rowTotal,
+  .qtyBtn {
+    min-height: 58px;
+  }
+
+  .qtyBtn {
+    font-size: 31px;
+  }
+
+  .saveStatus {
+    width: 100%;
+    text-align: center;
+  }
+
+  .recentArea {
+    display: block;
+  }
+
+  .recentList {
+    margin-top: 10px;
+  }
+
+  .monthGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .reportHeader button,
+  .annualButton,
+  .twoYearButton,
+  .entryActions button,
+  .editActions button {
+    min-height: 46px;
+  }
+
+  .savedToast {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    min-width: 0;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 430px) {
+  .app {
+    padding: 8px;
+  }
+
+  .headerMeta {
+    grid-template-columns: 1fr;
+  }
+
+  .brand h1,
+  .managerTop h1,
+  .pinCard h1 {
+    font-size: 26px;
+  }
+
+  .wasteRow {
+    grid-template-columns: 1fr;
+  }
+
+  .itemName,
+  .rowTotal {
+    grid-column: auto;
+  }
+
+  .clearBtn,
+  .submitBtn {
+    min-height: 56px;
+  }
+}
+
+/* =========================================================
+   FINAL CLEAN A9 KIOSK SIZE OVERRIDE
+   This replaces the messy force block and keeps the file valid.
+   It only affects the main employee kiosk screen on tablet/desktop.
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .kiosk {
+    max-width: 1260px;
+    grid-template-rows: 86px 118px minmax(0, 1fr) 112px;
+    gap: 9px;
+  }
+
+  .kiosk .brandIcon {
+    width: 58px;
+    height: 58px;
+    font-size: 25px;
+    border-radius: 20px;
+  }
+
+  .kiosk .brand h1 {
+    font-size: 48px;
+    line-height: 0.9;
+  }
+
+  .kiosk .brand p,
+  .kiosk .headerMeta p {
+    font-size: 14px;
+    letter-spacing: 0.08em;
+  }
+
+  .kiosk .kioskClock {
+    min-width: 182px;
+    height: 62px;
+    padding: 6px 16px;
+  }
+
+  .kiosk .kioskClock strong {
+    font-size: 35px;
+    line-height: 0.92;
+  }
+
+  .kiosk .kioskClock span {
+    font-size: 12px;
+  }
+
+  .kiosk .managerBtn {
+    min-width: 220px;
+    height: 62px;
+    font-size: 20px;
+    border-radius: 20px;
+    font-weight: 1000;
+  }
+
+  .kiosk .totalPanel,
+  .kiosk .smallStat {
+    padding: 16px 20px;
+    border-radius: 24px;
+  }
+
+  .kiosk .totalPanel p,
+  .kiosk .smallStat p {
+    font-size: 14px;
+    letter-spacing: 0.08em;
+  }
+
+  .kiosk .totalPanel strong,
+  .kiosk .smallStat strong {
+    font-size: 54px;
+    line-height: 0.92;
+  }
+
+  .kiosk .totalPanel span,
+  .kiosk .smallStat span {
+    font-size: 15px;
+  }
+
+  .kiosk .mainArea {
+    grid-template-columns: minmax(0, 1fr) 255px;
+    gap: 10px;
+  }
+
+  .kiosk .entryArea,
+  .kiosk .recentArea {
+    padding: 10px;
+    border-radius: 24px;
+  }
+
+  .kiosk .sectionTitle h2 {
+    font-size: 42px;
+    line-height: 0.94;
+  }
+
+  .kiosk .sectionTitle p {
+    font-size: 18px;
+  }
+
+  .kiosk .saveStatus {
+    font-size: 15px;
+    padding: 10px 14px;
+    font-weight: 1000;
+  }
+
+  .kiosk .wasteRows {
+    gap: 7px;
+  }
+
+  .kiosk .wasteRow {
+    grid-template-columns:
+      minmax(150px, 1fr)
+      minmax(92px, 0.55fr)
+      92px
+      minmax(92px, 0.5fr)
+      92px
+      minmax(108px, 0.62fr);
+    gap: 8px;
+    padding: 7px;
+    border-radius: 22px;
+  }
+
+  .kiosk .itemName span {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  .kiosk .itemName strong {
+    font-size: 42px;
+    line-height: 0.9;
+  }
+
+  .kiosk .itemPrice,
+  .kiosk .qtyDisplay,
+  .kiosk .rowTotal,
+  .kiosk .qtyBtn {
+    height: 72px;
+    min-height: 72px;
+    border-radius: 19px;
+  }
+
+  .kiosk .itemPrice p,
+  .kiosk .qtyDisplay p,
+  .kiosk .rowTotal p {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  .kiosk .itemPrice strong,
+  .kiosk .rowTotal strong {
+    font-size: 34px;
+    line-height: 0.92;
+  }
+
+  .kiosk .qtyDisplay strong {
+    font-size: 70px;
+    line-height: 0.75;
+  }
+
+  .kiosk .qtyBtn {
+    width: 92px;
+    min-width: 92px;
+    font-size: 76px;
+    line-height: 0.7;
+    font-weight: 1000;
+  }
+
+  .kiosk .recentArea .sectionTitle h2 {
+    font-size: 34px;
+  }
+
+  .kiosk .recentArea .sectionTitle p {
+    font-size: 15px;
+  }
+
+  .kiosk .recentCard {
+    padding: 10px;
+    border-radius: 18px;
+  }
+
+  .kiosk .recentCard strong {
+    font-size: 21px;
+  }
+
+  .kiosk .recentCard p {
+    font-size: 15px;
+  }
+
+  .kiosk .recentCard span {
+    font-size: 24px;
+  }
+
+  .kiosk .actions {
+    grid-template-columns: minmax(190px, 0.36fr) 1fr;
+    gap: 12px;
+  }
+
+  .kiosk .clearBtn,
+  .kiosk .submitBtn {
+    min-height: 86px;
+    height: 86px;
+    border-radius: 26px;
+    font-weight: 1000;
+  }
+
+  .kiosk .clearBtn {
+    font-size: 30px;
+  }
+
+  .kiosk .submitBtn {
+    font-size: 36px;
+  }
+
+  .kiosk .kioskSignature {
+    font-size: 15px;
+    font-weight: 950;
+  }
+}
+
+
 }
