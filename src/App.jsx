@@ -43,7 +43,7 @@ function App() {
 
   const [view, setView] = useState("employee")
   const [counts, setCounts] = useState(EMPTY_COUNTS)
-  const [message, setMessage] = useState("Ready for closing waste count")
+  const [message, setMessage] = useState("Ready to count closing waste")
   const [recentEntries, setRecentEntries] = useState([])
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -113,7 +113,7 @@ function App() {
 
       setRecentEntries(data)
     } catch {
-      setMessage("Ready for closing waste count")
+      setMessage("Ready to count closing waste")
     }
   }
 
@@ -125,7 +125,7 @@ function App() {
       setSummary(data)
     } catch {
       setSummary(null)
-      setMessage("Ready for closing waste count")
+      setMessage("Ready to count closing waste")
     }
   }
 
@@ -190,7 +190,7 @@ function App() {
     setCounts(EMPTY_COUNTS)
 
     setMessage(
-      `Saved ${data.items_saved} item type(s) • $${data.entry_total.toFixed(2)}`
+      `Saved successfully • ${data.items_saved} item type(s) • $${data.entry_total.toFixed(2)}`
     )
 
     setShowSavedFlash(true)
@@ -758,7 +758,7 @@ function App() {
             </div>
 
             <button className="managerBtn" onClick={openManagerGate}>
-              Summary
+              Manager Summary
             </button>
           </div>
         </header>
@@ -790,7 +790,7 @@ function App() {
             <div className="sectionTitle">
               <div>
                 <h2>Closing Waste Count</h2>
-                <p>Enter the final waste count at close, then submit once.</p>
+                <p>Tap + or − for each item. Check the total. Submit once.</p>
               </div>
 
               <div className="saveStatus">
@@ -888,12 +888,16 @@ function App() {
           >
             Submit Closing Waste
           </button>
+
+          <div className="kioskSignature">
+            DQ Waste Log • Built by Quentin
+          </div>
         </footer>
       </section>
 
       {showSavedFlash && (
         <div className="savedToast">
-          <strong>Saved</strong>
+          <strong>Saved Successfully</strong>
           <span>Closing waste count logged</span>
         </div>
       )}
