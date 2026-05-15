@@ -37,7 +37,7 @@ html {
 }
 
 body {
-  font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, Roboto, Arial, sans-serif;
   background:
     radial-gradient(circle at 8% 0%, rgba(215, 25, 32, 0.1), transparent 32%),
     linear-gradient(135deg, var(--cream), var(--cream-2));
@@ -2371,5 +2371,148 @@ button:active {
 
   .kiosk {
     height: calc(100dvh - 24px);
+  }
+}
+
+/* Softer professional tablet typography */
+.brand h1,
+.sectionTitle h2,
+.managerTop h1,
+.reportHeader h2,
+.itemName strong {
+  font-weight: 850;
+  letter-spacing: -0.04em;
+}
+
+.totalPanel strong,
+.smallStat strong,
+.managerStats strong,
+.qtyDisplay strong {
+  font-weight: 900;
+  letter-spacing: -0.045em;
+}
+
+/* Bigger item names on kiosk rows */
+@media (min-width: 901px) and (max-width: 1280px) {
+  .itemName strong {
+    font-size: 27px;
+    line-height: 0.95;
+    font-weight: 950;
+    letter-spacing: -0.055em;
+  }
+}
+/* Final save animation: clean kiosk feedback, not flashy */
+.savedToast {
+  min-width: 300px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  transform-origin: bottom right;
+  animation: savedToastPop 1.4s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.savedIcon {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  color: var(--dq-red-dark);
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 1000;
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  animation: savedCheckPop 0.42s cubic-bezier(0.18, 1.15, 0.35, 1.2) 0.08s both;
+}
+
+.saveCelebration .totalPanel {
+  animation: savedPanelPulse 0.55s ease-out both;
+}
+
+.saveCelebration .submitBtn {
+  animation: submitSavedPulse 0.55s ease-out both;
+}
+
+@keyframes savedToastPop {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.94);
+  }
+
+  14% {
+    opacity: 1;
+    transform: translateY(0) scale(1.02);
+  }
+
+  24%,
+  82% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+@keyframes savedCheckPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.45) rotate(-18deg);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1.12) rotate(3deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+@keyframes savedPanelPulse {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.018);
+    box-shadow: 0 18px 38px rgba(19, 120, 59, 0.18);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes submitSavedPulse {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(0.985);
+    filter: brightness(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .savedToast,
+  .savedIcon,
+  .saveCelebration .totalPanel,
+  .saveCelebration .submitBtn {
+    animation: none;
   }
 }
