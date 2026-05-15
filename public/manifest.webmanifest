@@ -1,25 +1,45 @@
 {
+  "id": "/",
   "name": "DQ Waste Log",
   "short_name": "Waste Log",
-  "description": "Dairy Queen closing waste tracking kiosk.",
-  "start_url": "/",
+  "description": "A simple closing waste log for Dairy Queen tablet use.",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "orientation": "landscape",
   "background_color": "#fff8ed",
   "theme_color": "#d71920",
+  "categories": ["business", "productivity", "utilities"],
+  "lang": "en-US",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Open Waste Log",
+      "short_name": "Waste Log",
+      "description": "Open the closing waste entry screen.",
+      "url": "/?source=shortcut",
+      "icons": [
+        {
+          "src": "/icons.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
     }
   ]
 }
