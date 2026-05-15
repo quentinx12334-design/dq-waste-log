@@ -1,6 +1,6 @@
-const CACHE_NAME = "dq-waste-log-v1"
+const CACHE_NAME = "dq-waste-log-v3"
 
-const STATIC_ASSETS = [
+const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
   "/favicon.svg",
@@ -9,7 +9,9 @@ const STATIC_ASSETS = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(APP_SHELL)
+    })
   )
 
   self.skipWaiting()
@@ -17,13 +19,13 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) =>
-      Promise.all(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
         cacheNames
           .filter((name) => name !== CACHE_NAME)
           .map((name) => caches.delete(name))
       )
-    )
+    })
   )
 
   self.clients.claim()
@@ -42,19 +44,45 @@ self.addEventListener("fetch", (event) => {
     return
   }
 
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        const responseClone = response.clone()
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const responseClone = response.clone()
 
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(request, responseClone)
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put("/", responseClone)
+          })
+
+          return response
         })
+        .catch(() => caches.match("/"))
+    )
 
-        return response
-      })
-      .catch(() =>
-        caches.match(request).then((cached) => cached || caches.match("/"))
-      )
+    return
+  }
+
+  event.respondWith(
+    caches.match(request).then((cachedResponse) => {
+      const fetchPromise = fetch(request)
+        .then((networkResponse) => {
+          if (
+            networkResponse &&
+            networkResponse.status === 200 &&
+            networkResponse.type === "basic"
+          ) {
+            const responseClone = networkResponse.clone()
+
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone)
+            })
+          }
+
+          return networkResponse
+        })
+        .catch(() => cachedResponse)
+
+      return cachedResponse || fetchPromise
+    })
   )
 })
