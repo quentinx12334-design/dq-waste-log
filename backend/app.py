@@ -41,6 +41,15 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+def get_business_day_start(now=None):
+    now = now or datetime.now()
+    business_start = now.replace(hour=2, minute=0, second=0, microsecond=0)
+
+    if now < business_start:
+        business_start -= timedelta(days=1)
+
+    return business_start
+
 
 def init_db():
     with get_db() as conn:
@@ -210,6 +219,38 @@ def write_item_breakdown(writer, item_rows):
             format_money(total_cost),
         ])
 
+def write_simple_waste_csv(writer, item_rows):
+    item_lookup = build_item_lookup(item_rows)
+
+    writer.writerow(["Waste", "Qty", "Loss"])
+
+    total_qty = 0
+    total_loss = 0
+
+    for item_name in ITEM_PRICES:
+        row = item_lookup.get(item_name)
+        quantity = int(row["quantity"]) if row else 0
+        total_cost = float(row["total_cost"]) if row else 0
+
+        if quantity <= 0:
+            continue
+
+        total_qty += quantity
+        total_loss += total_cost
+
+        writer.writerow([
+            item_name,
+            quantity,
+            format_money(total_cost),
+        ])
+
+    writer.writerow([])
+    writer.writerow([
+        "Total",
+        total_qty,
+        format_money(total_loss),
+    ])        
+
 
 def write_daily_totals(writer, daily_rows):
     write_section_title(writer, "Days")
@@ -314,7 +355,7 @@ def create_entry():
     force = bool(data.get("force", False))
     now = datetime.now()
     created_at = now.isoformat(timespec="seconds")
-    start_today = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat(timespec="seconds")
+    start_today = get_business_day_start(now).isoformat(timespec="seconds")
 
     with get_db() as conn:
         existing_today = conn.execute(
@@ -491,13 +532,16 @@ def recent_entries():
     limit = request.args.get("limit", 10, type=int)
     limit = max(1, min(limit, 50))
 
+    start_today = get_business_day_start().isoformat(timespec="seconds")
+
     with get_db() as conn:
         rows = conn.execute("""
             SELECT *
             FROM waste_entries
+            WHERE created_at >= ?
             ORDER BY created_at DESC, id DESC
             LIMIT ?
-        """, (limit,)).fetchall()
+        """, (start_today, limit)).fetchall()
 
     return jsonify([row_to_dict(row) for row in rows])
 
@@ -517,7 +561,7 @@ def summary():
     elif period == "two_years":
         start = now - timedelta(days=365 * RETENTION_YEARS)
     else:
-        start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        start = get_business_day_start(now)
 
     start_iso = start.isoformat(timespec="seconds")
 
@@ -749,17 +793,7 @@ def export_month_csv():
     output = io.StringIO()
     writer = csv.writer(output)
 
-    write_report_header(
-    writer,
-    "Month",
-    month,
-    total_row["quantity"],
-    total_row["total_cost"],
-    total_row["row_count"],
-)
-    write_item_breakdown(writer, item_rows)
-    write_daily_totals(writer, daily_rows)
-    write_entry_history(writer, entry_rows)
+    write_simple_waste_csv(writer, item_rows)
 
     csv_data = output.getvalue()
     output.close()
