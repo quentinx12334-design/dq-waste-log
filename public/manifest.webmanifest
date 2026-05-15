@@ -2,57 +2,29 @@
   "id": "/",
   "name": "DQ Waste Log",
   "short_name": "DQ Waste",
-  "description": "A tablet-based closing waste log for Dairy Queen.",
+  "description": "A simple closing waste tracking app for Dairy Queen.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["fullscreen", "standalone"],
   "orientation": "landscape",
-  "theme_color": "#d71920",
   "background_color": "#fff8ed",
-  "prefer_related_applications": false,
+  "theme_color": "#d71920",
   "categories": ["business", "productivity", "utilities"],
   "lang": "en-US",
   "dir": "ltr",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/maskable-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icons/maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Open Waste Log",
-      "short_name": "Waste Log",
-      "description": "Open the closing waste count screen.",
-      "url": "/",
-      "icons": [
-        {
-          "src": "/icons/icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
+      "src": "/icons.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }
