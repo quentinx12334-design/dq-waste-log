@@ -2,44 +2,32 @@
   "id": "/",
   "name": "DQ Waste Log",
   "short_name": "Waste Log",
-  "description": "A simple closing waste log for Dairy Queen tablet use.",
-  "start_url": "/?source=pwa",
+  "description": "A tablet-based closing waste log for Dairy Queen.",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "orientation": "landscape",
-  "background_color": "#fff8ed",
   "theme_color": "#d71920",
-  "categories": ["business", "productivity", "utilities"],
-  "lang": "en-US",
-  "dir": "ltr",
+  "background_color": "#fff8ed",
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    }
-  ],
-  "shortcuts": [
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
-      "name": "Open Waste Log",
-      "short_name": "Waste Log",
-      "description": "Open the closing waste entry screen.",
-      "url": "/?source=shortcut",
-      "icons": [
-        {
-          "src": "/icons.svg",
-          "sizes": "any",
-          "type": "image/svg+xml"
-        }
-      ]
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
