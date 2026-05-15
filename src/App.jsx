@@ -112,7 +112,6 @@ useEffect(() => {
     const nextTwoAM = new Date()
 
     nextTwoAM.setHours(2, 0, 0, 0)
-
     if (nextTwoAM <= now) {
       nextTwoAM.setDate(nextTwoAM.getDate() + 1)
     }
@@ -793,7 +792,7 @@ useEffect(() => {
             <p>Today’s Total</p>
             <strong>${todayWaste.toFixed(2)}</strong>
             <span>
-              {isOverGoal ? "Above daily target" : "Within daily target"}
+              Goal: $5.00 daily waste • {isOverGoal ? "Above target" : "Within target"}
             </span>
           </div>
 
@@ -914,15 +913,12 @@ useEffect(() => {
             Submit Closing Waste
           </button>
 
-          <div className="kioskSignature">
-            DQ Waste Log • Built by Quentin
-          </div>
         </footer>
       </section>
 
       {showSavedFlash && (
         <div className="savedToast">
-          <strong>Saved Successfully</strong>
+          <strong>Waste Count Saved</strong>
           <span>Closing waste count logged</span>
         </div>
       )}
