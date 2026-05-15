@@ -320,6 +320,10 @@ def write_entry_history(writer, entry_rows):
             format_money(row["total_cost"]),
         ])
 
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"})        
+
 
 @app.route("/api/settings", methods=["GET"])
 def get_settings():
