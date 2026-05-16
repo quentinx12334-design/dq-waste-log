@@ -735,22 +735,26 @@ function App() {
                               </div>
 
                               <div className="entryActions">
-                                {group.photo_url && (
-                                  <button
-                                    className="photoViewBtn"
-                                    onClick={() =>
-                                      window.open(
-                                        getPhotoUrl(group.photo_url),
-                                        "_blank"
-                                      )
-                                    }
-                                  >
-                                    Photo
-                                  </button>
-                                )}
+  {group.photo_url && (
+    <button
+      className="photoViewBtn"
+      onClick={() =>
+        window.open(
+          getPhotoUrl(group.photo_url),
+          "_blank"
+        )
+      }
+    >
+      Photo
+    </button>
+  )}
 
-                                <span>${group.total_cost.toFixed(2)}</span>
-                              </div>
+  <button onClick={() => openEdit(group.entries[0])}>
+    Details
+  </button>
+
+  <span>${group.total_cost.toFixed(2)}</span>
+</div>
                             </div>
                           ))
                         )}
