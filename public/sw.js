@@ -1,4 +1,4 @@
-const CACHE_NAME = "dq-waste-log-v3"
+const CACHE_NAME = "dq-waste-log-v4"
 
 const APP_SHELL = [
   "/",
