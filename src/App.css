@@ -500,6 +500,8 @@ textarea:focus-visible {
   letter-spacing: 0.09em;
 }
 
+
+
 .itemPrice strong,
 .rowTotal strong {
   font-size: 16px;
@@ -1498,6 +1500,7 @@ button,
 .managerBtn:not(:disabled)::after,
 .photoBtn::after {
   content: "";
+
   position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -1997,8 +2000,8 @@ button,
     overflow: visible;
   }
 
-  .managerStats {
-    min-height: 0;
+  .managerStats {  
+        min-height: 0;
   }
 
   .managerStats div {
@@ -2289,4 +2292,38 @@ button,
       0 10px 18px rgba(33, 24, 22, 0.16),
       inset 0 1px 0 rgba(255, 255, 255, 0.12);
   }
+}
+
+.dayEntryRow {
+  align-items: center;
+}
+
+.dayEntryRow p {
+  max-width: 100%;
+  line-height: 1.25;
+}
+
+.recentGroupCard {
+  align-items: center;
+  background:
+    linear-gradient(135deg, #ffffff, #fff7ec);
+}
+
+.recentGroupCard strong {
+  font-size: 14px;
+  color: var(--dq-red-dark);
+}
+
+.recentGroupCard p {
+  max-width: 155px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.recentGroupCard span {
+  padding: 7px 9px;
+  border-radius: 12px;
+  background: var(--dq-red-soft);
+  color: var(--dq-red-dark);
+  border: 1px solid #ffd1d5;
 }
