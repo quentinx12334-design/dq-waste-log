@@ -19,7 +19,6 @@ const EMPTY_COUNTS = {
   Toast: 0,
 }
 
-const MANAGER_PIN = "2580"
 
 const MONTHS = [
   { number: "01", short: "Jan", name: "January" },
@@ -47,8 +46,6 @@ function App() {
   const [recentEntries, setRecentEntries] = useState([])
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [managerPin, setManagerPin] = useState("")
-  const [managerError, setManagerError] = useState("")
   const [showSavedFlash, setShowSavedFlash] = useState(false)
   const [photoData, setPhotoData] = useState("")
   const [photoPreview, setPhotoPreview] = useState("")
@@ -96,6 +93,74 @@ function App() {
 
     return (monthSummary.total_cost || 0) / monthSummary.row_count
   }, [monthSummary])
+
+  const groupedMonthEntries = useMemo(() => {
+    if (!monthSummary?.entries?.length) return []
+
+    const groups = new Map()
+
+    monthSummary.entries.forEach((entry) => {
+      const dateKey = new Date(entry.created_at).toLocaleDateString()
+      const timeKey = formatTime(entry.created_at)
+      const photoKey = entry.photo_id || "no-photo"
+      const groupKey = `${dateKey}-${timeKey}-${photoKey}`
+
+      if (!groups.has(groupKey)) {
+        groups.set(groupKey, {
+          key: groupKey,
+          created_at: entry.created_at,
+          photo_url: entry.photo_url,
+          photo_id: entry.photo_id,
+          entries: [],
+          total_cost: 0,
+          total_quantity: 0,
+        })
+      }
+
+      const group = groups.get(groupKey)
+      group.entries.push(entry)
+      group.total_cost += Number(entry.total_cost || 0)
+      group.total_quantity += Number(entry.quantity || 0)
+    })
+
+    return Array.from(groups.values()).sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    )
+  }, [monthSummary])
+
+    const groupedRecentEntries = useMemo(() => {
+    if (!recentEntries?.length) return []
+
+    const groups = new Map()
+
+    recentEntries.forEach((entry) => {
+      const dateKey = new Date(entry.created_at).toLocaleDateString()
+      const timeKey = formatTime(entry.created_at)
+      const photoKey = entry.photo_id || "no-photo"
+      const groupKey = `${dateKey}-${timeKey}-${photoKey}`
+
+      if (!groups.has(groupKey)) {
+        groups.set(groupKey, {
+          key: groupKey,
+          created_at: entry.created_at,
+          photo_url: entry.photo_url,
+          photo_id: entry.photo_id,
+          entries: [],
+          total_cost: 0,
+          total_quantity: 0,
+        })
+      }
+
+      const group = groups.get(groupKey)
+      group.entries.push(entry)
+      group.total_cost += Number(entry.total_cost || 0)
+      group.total_quantity += Number(entry.quantity || 0)
+    })
+
+    return Array.from(groups.values()).sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    )
+  }, [recentEntries])
 
   useEffect(() => {
     loadRecentEntries()
@@ -479,76 +544,12 @@ function App() {
     return `${found?.name || month} ${year}`
   }
 
-  function openManagerGate() {
-    setManagerError("")
-    setManagerPin("")
-    setView("managerGate")
-  }
-
-  function unlockManager(event) {
-    event.preventDefault()
-
-    if (managerPin !== MANAGER_PIN) {
-      setManagerError("Wrong PIN")
-      return
-    }
-
-    setManagerError("")
-    setManagerPin("")
+  function openManagerSummary() {
     setView("manager")
   }
 
-
-    function goBackToKiosk() {
+  function goBackToKiosk() {
     setView("employee")
-    setManagerPin("")
-    setManagerError("")
-  }
-
-  if (view === "managerGate") {
-    return (
-      <main className="app gateApp">
-        <section className="pinShell">
-          <div className="pinCard">
-            <div className="pinBadge">DQ</div>
-
-            <p>Summary Access</p>
-            <h1>Enter PIN</h1>
-
-            <span>Summary reports, exports, edits, and delete controls.</span>
-
-            <form onSubmit={unlockManager}>
-              <input
-                autoFocus
-                inputMode="numeric"
-                maxLength="4"
-                placeholder="••••"
-                type="password"
-                value={managerPin}
-                onChange={(event) => {
-                  setManagerPin(event.target.value.replace(/\D/g, ""))
-                  setManagerError("")
-                }}
-              />
-
-              {managerError && (
-                <strong className="pinError">{managerError}</strong>
-              )}
-
-              <button type="submit">Unlock Summary</button>
-
-              <button
-                className="pinCancel"
-                type="button"
-                onClick={goBackToKiosk}
-              >
-                Back to Kiosk
-              </button>
-            </form>
-          </div>
-        </section>
-      </main>
-    )
   }
 
   if (view === "manager") {
@@ -675,7 +676,7 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="reportGrid">
+                                    <div className="reportGrid">
                     <div className="reportCard">
                       <h3>Item Breakdown</h3>
 
@@ -710,29 +711,36 @@ function App() {
                       <h3>Entry History</h3>
 
                       <div className="entryList">
-                        {monthSummary.entries?.length === 0 ? (
+                        {groupedMonthEntries.length === 0 ? (
                           <p className="emptyText">
                             No entries for this month.
                           </p>
                         ) : (
-                          monthSummary.entries.map((entry) => (
-                            <div className="entryRow" key={entry.id}>
+                          groupedMonthEntries.map((group) => (
+                            <div className="entryRow dayEntryRow" key={group.key}>
                               <div>
-                                <strong>{entry.item_name}</strong>
+                                <strong>
+                                  {formatDate(group.created_at)} •{" "}
+                                  {formatTime(group.created_at)}
+                                </strong>
+
                                 <p>
-                                  {formatDate(entry.created_at)} •{" "}
-                                  {formatTime(entry.created_at)} • Qty{" "}
-                                  {entry.quantity}
+                                  {group.entries
+                                    .map(
+                                      (entry) =>
+                                        `${entry.item_name} x${entry.quantity}`
+                                    )
+                                    .join(" • ")}
                                 </p>
                               </div>
 
                               <div className="entryActions">
-                                {entry.photo_url && (
+                                {group.photo_url && (
                                   <button
                                     className="photoViewBtn"
                                     onClick={() =>
                                       window.open(
-                                        getPhotoUrl(entry.photo_url),
+                                        getPhotoUrl(group.photo_url),
                                         "_blank"
                                       )
                                     }
@@ -741,11 +749,7 @@ function App() {
                                   </button>
                                 )}
 
-                                <span>${entry.total_cost.toFixed(2)}</span>
-
-                                <button onClick={() => openEdit(entry)}>
-                                  Edit
-                                </button>
+                                <span>${group.total_cost.toFixed(2)}</span>
                               </div>
                             </div>
                           ))
@@ -886,7 +890,7 @@ function App() {
               </span>
             </div>
 
-            <button className="managerBtn" onClick={openManagerGate}>
+            <button className="managerBtn" onClick={openManagerSummary}>
               Manager Summary
             </button>
           </div>
@@ -980,26 +984,27 @@ function App() {
             </div>
 
             <div className="recentList">
-              {recentEntries.length === 0 ? (
-                <div className="emptyState">
-                  <strong>No entries yet</strong>
-                  <p>Saved waste will show here after submitting.</p>
-                </div>
-              ) : (
+              {groupedRecentEntries.length === 0 ? (
+  <div className="emptyState">
+    <strong>No entries yet</strong>
+    <p>Saved waste will show here after submitting.</p>
+  </div>
+) : (
+  groupedRecentEntries.map((group) => (
+    <div className="recentCard recentGroupCard" key={group.key}>
+      <div>
+        <strong>{formatTime(group.created_at)}</strong>
+        <p>
+          {group.entries
+            .map((entry) => `${entry.item_name} x${entry.quantity}`)
+            .join(" • ")}
+        </p>
+      </div>
 
-                                recentEntries.map((entry) => (
-                  <div className="recentCard" key={entry.id}>
-                    <div>
-                      <strong>{entry.item_name}</strong>
-                      <p>
-                        {formatTime(entry.created_at)} • Qty {entry.quantity}
-                      </p>
-                    </div>
-
-                    <span>${entry.total_cost.toFixed(2)}</span>
-                  </div>
-                ))
-              )}
+      <span>${group.total_cost.toFixed(2)}</span>
+    </div>
+  ))
+)}
             </div>
           </aside>
         </section>
@@ -1023,17 +1028,17 @@ function App() {
             </label>
 
             {photoPreview && (
-  <div className="photoMiniPreview">
-    <img src={photoPreview} alt="Waste bucket preview" />
-    <div>
-      <strong>Photo Added</strong>
-      <span>{photoInfo || "Ready to submit"}</span>
-    </div>
-    <button type="button" onClick={removeSelectedPhoto}>
-      Remove
-    </button>
-  </div>
-)}
+              <div className="photoMiniPreview">
+                <img src={photoPreview} alt="Waste bucket preview" />
+                <div>
+                  <strong>Photo Added</strong>
+                  <span>{photoInfo || "Ready to submit"}</span>
+                </div>
+                <button type="button" onClick={removeSelectedPhoto}>
+                  Remove
+                </button>
+              </div>
+            )}
           </div>
 
           <button
@@ -1041,7 +1046,11 @@ function App() {
             disabled={loading || photoBusy}
             onClick={() => submitEntry(false)}
           >
-            {loading ? "Saving..." : photoBusy ? "Preparing Photo..." : "Submit Closing Waste"}
+            {loading
+              ? "Saving..."
+              : photoBusy
+                ? "Preparing Photo..."
+                : "Submit Closing Waste"}
           </button>
         </footer>
       </section>
