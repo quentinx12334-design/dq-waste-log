@@ -36,6 +36,32 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+
+/* PWA/tablet lock: no page scroll, no pull/bounce, no accidental zoom feeling */
+html,
+body,
+#root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+.app {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+.kiosk,
+.managerShell {
+  overscroll-behavior: none;
+}
+
+
 body {
   font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, Roboto, Arial, sans-serif;
   background:
@@ -225,6 +251,24 @@ textarea:focus-visible {
 
 .brand h1 {
   font-size: clamp(27px, 2.4vw, 34px);
+}
+
+.creditLine {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--dq-red-soft);
+  border: 1px solid #ffd1d5;
+  color: var(--dq-red-dark);
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .kioskClock {
@@ -499,8 +543,6 @@ textarea:focus-visible {
   text-transform: uppercase;
   letter-spacing: 0.09em;
 }
-
-
 
 .itemPrice strong,
 .rowTotal strong {
@@ -1500,7 +1542,6 @@ button,
 .managerBtn:not(:disabled)::after,
 .photoBtn::after {
   content: "";
-
   position: absolute;
   inset: 0;
   border-radius: inherit;
@@ -2000,8 +2041,8 @@ button,
     overflow: visible;
   }
 
-  .managerStats {  
-        min-height: 0;
+  .managerStats {
+    min-height: 0;
   }
 
   .managerStats div {
@@ -2017,25 +2058,25 @@ button,
   }
 }
 
-/* Tablet portrait and smaller screens can scroll because layout stacks */
+/* Tablet portrait and smaller screens stay locked like an installed app */
 @media (max-width: 900px) {
   body {
-    overflow: auto;
+    overflow: hidden;
   }
 
   .app {
-    height: auto;
+    height: 100dvh;
     min-height: 100dvh;
-    padding-bottom: 18px;
-    overflow: auto;
+    padding-bottom: 10px;
+    overflow: hidden;
   }
 
   .kiosk,
   .managerShell {
-    height: auto;
-    min-height: calc(100dvh - 24px);
+    height: calc(100dvh - 20px);
+    min-height: 0;
     grid-template-rows: auto;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .header,
@@ -2148,7 +2189,7 @@ button,
 
   .monthPanel,
   .reportPanel {
-    overflow: visible;
+    overflow: hidden;
     grid-template-rows: auto;
   }
 
@@ -2176,8 +2217,9 @@ button,
   }
 
   .entryList {
-    max-height: none;
-    overflow: visible;
+    max-height: 320px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .header,
@@ -2326,342 +2368,6 @@ button,
   background: var(--dq-red-soft);
   color: var(--dq-red-dark);
   border: 1px solid #ffd1d5;
-}
-
-/* PWA / installed app polish */
-@media (display-mode: standalone) {
-  body {
-    background: #fff8ed;
-  }
-
-  .app {
-    padding:
-      max(10px, env(safe-area-inset-top))
-      max(12px, env(safe-area-inset-right))
-      max(12px, env(safe-area-inset-bottom))
-      max(12px, env(safe-area-inset-left));
-    background:
-      radial-gradient(circle at 12% 0%, rgba(215, 25, 32, 0.12), transparent 34%),
-      linear-gradient(135deg, #fff8ed, #f7efe1);
-  }
-
-  .kiosk,
-  .managerShell {
-    height: calc(100dvh - 24px);
-  }
-
-  .header,
-  .entryArea,
-  .recentArea,
-  .actions,
-  .totalPanel,
-  .smallStat,
-  .managerTop,
-  .monthPanel,
-  .reportPanel {
-    border-color: rgba(220, 201, 183, 0.9);
-    box-shadow:
-      0 14px 32px rgba(80, 41, 28, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.85);
-  }
-
-  .header {
-    background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 250, 242, 0.96));
-  }
-
-  .brandIcon {
-    box-shadow:
-      0 12px 24px rgba(215, 25, 32, 0.32),
-      inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  }
-
-  .submitBtn,
-  .plus,
-  .twoYearButton,
-  .reportHeader button,
-  .saveEditBtn {
-    background:
-      linear-gradient(180deg, #f7393f 0%, #d71920 48%, #a90f18 100%);
-    box-shadow:
-      0 14px 28px rgba(215, 25, 32, 0.28),
-      inset 0 1px 0 rgba(255, 255, 255, 0.28);
-  }
-
-  .clearBtn,
-  .itemPrice,
-  .qtyDisplay,
-  .rowTotal {
-    background:
-      linear-gradient(180deg, #ffffff, #fff7ec);
-  }
-
-  .wasteRow {
-    background:
-      linear-gradient(135deg, #ffffff, #fff8ef);
-    box-shadow:
-      0 8px 18px rgba(80, 41, 28, 0.07),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  }
-
-  .managerBtn,
-  .minus,
-  .annualButton,
-  .photoBtn {
-    background:
-      linear-gradient(180deg, #332725, #211816);
-  }
-}
-
-/* Samsung Tab A9+ / short landscape Summary fix */
-@media (min-width: 900px) and (max-width: 1280px) and (max-height: 820px) {
-  .app {
-    padding: 8px;
-  }
-
-  .managerShell {
-    height: calc(100dvh - 16px);
-    grid-template-rows: 64px minmax(0, 1fr);
-    gap: 8px;
-  }
-
-  .managerTop {
-    min-height: 64px;
-    padding: 8px 12px;
-    border-radius: 18px;
-  }
-
-  .managerTop h1 {
-    font-size: 28px;
-  }
-
-  .managerTop span {
-    font-size: 11px;
-  }
-
-  .managerTop button {
-    height: 40px;
-    min-width: 118px;
-    font-size: 12px;
-  }
-
-  .managerWorkspace {
-    grid-template-columns: 300px minmax(0, 1fr);
-    gap: 8px;
-  }
-
-  .monthPanel,
-  .reportPanel {
-    padding: 9px;
-    border-radius: 18px;
-  }
-
-  .monthPanel {
-    grid-template-rows: 58px 82px minmax(0, 1fr);
-    gap: 8px;
-  }
-
-  .yearCard {
-    padding: 6px;
-    grid-template-columns: 44px minmax(0, 1fr) 44px;
-  }
-
-  .yearCard button {
-    height: 42px;
-    font-size: 22px;
-  }
-
-  .yearCard strong {
-    font-size: 26px;
-  }
-
-  .exportButtons {
-    gap: 8px;
-  }
-
-  .annualButton,
-  .twoYearButton {
-    min-height: 38px;
-    font-size: 12px;
-    border-radius: 14px;
-  }
-
-  .monthGrid {
-    gap: 7px;
-  }
-
-  .monthTile {
-    padding: 7px;
-    border-radius: 14px;
-  }
-
-  .monthTile span {
-    width: 26px;
-    height: 26px;
-    border-radius: 9px;
-    font-size: 10px;
-  }
-
-  .monthTile strong {
-    font-size: 16px;
-  }
-
-  .reportPanel {
-    grid-template-rows: 72px 98px 42px minmax(0, 1fr);
-    gap: 8px;
-  }
-
-  .reportHeader {
-    min-height: 72px;
-    padding: 9px 12px;
-    border-radius: 16px;
-  }
-
-  .reportHeader h2 {
-    font-size: 27px;
-  }
-
-  .reportHeader button {
-    height: 40px;
-    padding: 0 14px;
-    font-size: 12px;
-  }
-
-  .managerStats {
-    min-height: 98px;
-    gap: 8px;
-  }
-
-  .managerStats div {
-    min-height: 98px;
-    padding: 9px 10px;
-    border-radius: 16px;
-  }
-
-  .managerStats p {
-    font-size: 9px;
-  }
-
-  .managerStats strong {
-    margin-top: 6px;
-    font-size: 30px;
-  }
-
-  .managerStats span {
-    margin-top: 6px;
-    font-size: 11px;
-    line-height: 1.1;
-  }
-
-  .insightStrip,
-  .insightStrip div {
-    min-height: 42px;
-  }
-
-  .insightStrip div {
-    padding: 7px 12px;
-    border-radius: 15px;
-  }
-
-  .insightStrip p {
-    font-size: 9px;
-  }
-
-  .insightStrip strong {
-    margin-top: 2px;
-    font-size: 16px;
-  }
-
-  .reportGrid {
-    gap: 8px;
-    grid-template-columns: 0.95fr 1.05fr;
-  }
-
-  .reportCard {
-    padding: 10px;
-    border-radius: 16px;
-  }
-
-  .reportCard h3 {
-    font-size: 24px;
-    margin-bottom: 7px;
-  }
-
-  th {
-    font-size: 8px;
-    padding-bottom: 5px;
-  }
-
-  td {
-    padding: 6px 0;
-    font-size: 13px;
-  }
-
-  .entryList {
-    max-height: calc(100% - 30px);
-  }
-
-  .entryRow {
-    padding: 8px;
-    border-radius: 14px;
-  }
-
-  .emptyText {
-    font-size: 12px;
-  }
-}
-
-/* Faster kiosk touch feel */
-.qtyBtn,
-.clearBtn,
-.submitBtn,
-.managerBtn,
-.managerTop button,
-.yearCard button,
-.annualButton,
-.twoYearButton,
-.monthTile,
-.reportHeader button,
-.entryActions button,
-.pinCard button,
-.editActions button,
-.photoBtn,
-.photoMiniPreview button {
-  transition:
-    transform 0.06s ease,
-    box-shadow 0.06s ease,
-    filter 0.06s ease,
-    background 0.08s ease;
-}
-
-.qtyBtn:active,
-.clearBtn:active,
-.submitBtn:active,
-.managerBtn:active,
-.managerTop button:active,
-.yearCard button:active,
-.annualButton:active,
-.twoYearButton:active,
-.monthTile:active,
-.reportHeader button:active,
-.entryActions button:active,
-.pinCard button:active,
-.editActions button:active,
-.photoBtn:active,
-.photoMiniPreview button:active {
-  transform: scale(0.985);
-}
-
-
-@media (min-width: 900px) and (max-width: 1280px) and (max-height: 820px) {
-  .app {
-    padding: 6px;
-  }
-
-  .kiosk,
-  .managerShell {
-    height: calc(100dvh - 12px);
-  }
 }
 
 .creditLine {
