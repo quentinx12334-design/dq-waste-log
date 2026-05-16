@@ -6,6 +6,9 @@ from datetime import datetime, timedelta
 import csv
 import io
 import os
+import base64
+import re
+
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "dq_waste.db"
 
@@ -34,12 +37,15 @@ APP_SETTINGS = {
 }
 
 RETENTION_YEARS = 2
+MAX_PHOTO_BYTES = 900 * 1024
+PHOTO_DATA_RE = re.compile(r"^data:(image/(?:jpeg|jpg|png|webp));base64,(.+)$")
 
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 def get_business_day_start(now=None):
     now = now or datetime.now()
@@ -54,6 +60,15 @@ def get_business_day_start(now=None):
 def init_db():
     with get_db() as conn:
         conn.execute("""
+            CREATE TABLE IF NOT EXISTS waste_photos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                mime_type TEXT NOT NULL,
+                image_data TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        """)
+
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS waste_entries (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 item_name TEXT NOT NULL,
@@ -63,13 +78,29 @@ def init_db():
                 shift TEXT DEFAULT '',
                 employee_name TEXT DEFAULT '',
                 note TEXT DEFAULT '',
-                created_at TEXT NOT NULL
+                created_at TEXT NOT NULL,
+                photo_id INTEGER DEFAULT NULL
             )
         """)
+
+        waste_columns = [
+            row["name"]
+            for row in conn.execute("PRAGMA table_info(waste_entries)").fetchall()
+        ]
+
+        if "photo_id" not in waste_columns:
+            conn.execute(
+                "ALTER TABLE waste_entries ADD COLUMN photo_id INTEGER DEFAULT NULL"
+            )
 
         conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_waste_entries_created_at
             ON waste_entries(created_at)
+        """)
+
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_waste_entries_photo_id
+            ON waste_entries(photo_id)
         """)
 
         conn.execute("""
@@ -85,14 +116,27 @@ def init_db():
                 note TEXT DEFAULT '',
                 created_at TEXT NOT NULL,
                 deleted_at TEXT NOT NULL,
-                void_reason TEXT NOT NULL
+                void_reason TEXT NOT NULL,
+                photo_id INTEGER DEFAULT NULL
             )
         """)
+
+        deleted_columns = [
+            row["name"]
+            for row in conn.execute("PRAGMA table_info(deleted_waste_entries)").fetchall()
+        ]
+
+        if "photo_id" not in deleted_columns:
+            conn.execute(
+                "ALTER TABLE deleted_waste_entries ADD COLUMN photo_id INTEGER DEFAULT NULL"
+            )
 
         conn.commit()
 
 
 def row_to_dict(row):
+    photo_id = row["photo_id"] if "photo_id" in row.keys() else None
+
     return {
         "id": row["id"],
         "item_name": row["item_name"],
@@ -102,6 +146,38 @@ def row_to_dict(row):
         "employee_name": row["employee_name"],
         "note": row["note"],
         "created_at": row["created_at"],
+        "photo_id": photo_id,
+        "photo_url": f"/api/photos/{photo_id}" if photo_id else None,
+    }
+
+
+def parse_photo_data(photo_data):
+    if not photo_data:
+        return None
+
+    if not isinstance(photo_data, str):
+        raise ValueError("Photo must be a valid image.")
+
+    match = PHOTO_DATA_RE.match(photo_data.strip())
+
+    if not match:
+        raise ValueError("Photo must be JPEG, PNG, or WebP.")
+
+    mime_type = match.group(1).replace("image/jpg", "image/jpeg")
+    image_base64 = match.group(2)
+
+    try:
+        image_bytes = base64.b64decode(image_base64, validate=True)
+    except Exception as exc:
+        raise ValueError("Photo could not be read.") from exc
+
+    if len(image_bytes) > MAX_PHOTO_BYTES:
+        raise ValueError("Photo is too large. Retake it or use a smaller image.")
+
+    return {
+        "mime_type": mime_type,
+        "image_data": image_base64,
+        "size_bytes": len(image_bytes),
     }
 
 
@@ -180,8 +256,14 @@ def get_top_day(daily_rows):
     return max(daily_rows, key=lambda row: float(row["total_cost"] or 0))
 
 
-
-def write_report_header(writer, report_type, report_range, total_quantity, total_cost, row_count):
+def write_report_header(
+    writer,
+    report_type,
+    report_range,
+    total_quantity,
+    total_cost,
+    row_count,
+):
     generated_at = format_report_datetime(datetime.now().isoformat(timespec="minutes"))
 
     writer.writerow(["Report", "Type", "Range", "Generated", "Loss", "Items", "Entries"])
@@ -219,6 +301,7 @@ def write_item_breakdown(writer, item_rows):
             format_money(total_cost),
         ])
 
+
 def write_simple_waste_csv(writer, item_rows):
     item_lookup = build_item_lookup(item_rows)
 
@@ -249,7 +332,7 @@ def write_simple_waste_csv(writer, item_rows):
         "Total",
         total_qty,
         format_money(total_loss),
-    ])        
+    ])
 
 
 def write_daily_totals(writer, daily_rows):
@@ -320,9 +403,30 @@ def write_entry_history(writer, entry_rows):
             format_money(row["total_cost"]),
         ])
 
+
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({"status": "ok"})        
+    return jsonify({"status": "ok"})
+
+
+@app.route("/api/photos/<int:photo_id>", methods=["GET"])
+def get_photo(photo_id):
+    with get_db() as conn:
+        row = conn.execute("""
+            SELECT mime_type, image_data
+            FROM waste_photos
+            WHERE id = ?
+        """, (photo_id,)).fetchone()
+
+    if not row:
+        return jsonify({"error": "Photo not found."}), 404
+
+    try:
+        image_bytes = base64.b64decode(row["image_data"])
+    except Exception:
+        return jsonify({"error": "Photo could not be loaded."}), 500
+
+    return Response(image_bytes, mimetype=row["mime_type"])
 
 
 @app.route("/api/settings", methods=["GET"])
@@ -356,10 +460,16 @@ def create_entry():
     shift = data.get("shift", "")
     employee_name = data.get("employee_name", "")
     note = data.get("note", "")
+    photo_data = data.get("photo_data")
     force = bool(data.get("force", False))
     now = datetime.now()
     created_at = now.isoformat(timespec="seconds")
     start_today = get_business_day_start(now).isoformat(timespec="seconds")
+
+    try:
+        parsed_photo = parse_photo_data(photo_data)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
 
     with get_db() as conn:
         existing_today = conn.execute(
@@ -379,7 +489,7 @@ def create_entry():
     for item_name, quantity in counts.items():
         if item_name not in ITEM_PRICES:
             continue
-
+        
         try:
             quantity = int(quantity)
         except (TypeError, ValueError):
@@ -406,11 +516,31 @@ def create_entry():
         return jsonify({"error": "No valid waste items submitted."}), 400
 
     with get_db() as conn:
+        photo_id = None
+
+        if parsed_photo:
+            cursor = conn.execute("""
+                INSERT INTO waste_photos
+                (mime_type, image_data, created_at)
+                VALUES (?, ?, ?)
+            """, (
+                parsed_photo["mime_type"],
+                parsed_photo["image_data"],
+                created_at,
+            ))
+
+            photo_id = cursor.lastrowid
+
         conn.executemany("""
             INSERT INTO waste_entries
-            (item_name, quantity, cost_per_item, total_cost, shift, employee_name, note, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, rows_to_insert)
+            (item_name, quantity, cost_per_item, total_cost, shift,
+             employee_name, note, created_at, photo_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, [
+            row + (photo_id,)
+            for row in rows_to_insert
+        ])
+
         conn.commit()
 
     return jsonify({
@@ -418,6 +548,8 @@ def create_entry():
         "created_at": created_at,
         "items_saved": len(rows_to_insert),
         "entry_total": round(sum(row[3] for row in rows_to_insert), 2),
+        "photo_saved": bool(photo_id),
+        "photo_id": photo_id,
     }), 201
 
 
@@ -506,16 +638,19 @@ def delete_entry(entry_id):
         if not existing:
             return jsonify({"error": "Entry not found."}), 404
 
+        existing_photo_id = existing["photo_id"] if "photo_id" in existing.keys() else None
+
         conn.execute("""
             INSERT INTO deleted_waste_entries
             (original_entry_id, item_name, quantity, cost_per_item, total_cost,
-             shift, employee_name, note, created_at, deleted_at, void_reason)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             shift, employee_name, note, created_at, deleted_at, void_reason,
+             photo_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             existing["id"], existing["item_name"], existing["quantity"],
             existing["cost_per_item"], existing["total_cost"], existing["shift"],
             existing["employee_name"], existing["note"], existing["created_at"],
-            deleted_at, void_reason,
+            deleted_at, void_reason, existing_photo_id,
         ))
 
         conn.execute("""
@@ -761,6 +896,7 @@ def export_month_csv():
               AND created_at < ?
         """, (start, end)).fetchone()
 
+
         daily_rows = conn.execute("""
             SELECT
                 DATE(created_at) AS date,
@@ -892,6 +1028,7 @@ def export_year_csv():
     write_monthly_totals(writer, monthly_rows)
     write_item_breakdown(writer, item_rows)
     write_daily_totals(writer, daily_rows)
+    write_entry_history(writer, entry_rows)
 
     csv_data = output.getvalue()
     output.close()
@@ -908,7 +1045,7 @@ def export_two_year_csv():
     end = end_date.isoformat(timespec="seconds")
 
     with get_db() as conn:
-        two_year_total = conn.execute("""
+        total_row = conn.execute("""
             SELECT
                 COALESCE(SUM(total_cost), 0) AS total_cost,
                 COALESCE(SUM(quantity), 0) AS quantity,
@@ -980,17 +1117,19 @@ def export_two_year_csv():
     output = io.StringIO()
     writer = csv.writer(output)
 
+    report_range = (
+        f"{format_report_date(start)} to {format_report_date(end)}"
+    )
+
     write_report_header(
         writer,
-        "Two-Year Waste Report",
-        "Long-Term Owner Summary",
-        f"{format_report_date(start)} to {format_report_date(end)}",
-        two_year_total["quantity"],
-        two_year_total["total_cost"],
-        two_year_total["row_count"],
-        item_rows,
-        daily_rows,
+        "Full Report",
+        report_range,
+        total_row["quantity"],
+        total_row["total_cost"],
+        total_row["row_count"],
     )
+
     write_yearly_totals(writer, yearly_rows)
     write_monthly_totals(writer, monthly_rows)
     write_item_breakdown(writer, item_rows)
@@ -1000,33 +1139,72 @@ def export_two_year_csv():
     csv_data = output.getvalue()
     output.close()
 
-    return make_report_response(csv_data, "DQ_Waste_2Year.csv")
+    return make_report_response(csv_data, "DQ_Waste_Full_Report.csv")
 
 
-@app.route("/api/entries/cleanup", methods=["POST"])
+@app.route("/api/voided", methods=["GET"])
+def voided_entries():
+    limit = request.args.get("limit", 50, type=int)
+    limit = max(1, min(limit, 200))
+
+    with get_db() as conn:
+        rows = conn.execute("""
+            SELECT *
+            FROM deleted_waste_entries
+            ORDER BY deleted_at DESC, id DESC
+            LIMIT ?
+        """, (limit,)).fetchall()
+
+    return jsonify([
+        {
+            "id": row["id"],
+            "original_entry_id": row["original_entry_id"],
+            "item_name": row["item_name"],
+            "quantity": row["quantity"],
+            "cost_per_item": row["cost_per_item"],
+            "total_cost": row["total_cost"],
+            "employee_name": row["employee_name"],
+            "note": row["note"],
+            "created_at": row["created_at"],
+            "deleted_at": row["deleted_at"],
+            "void_reason": row["void_reason"],
+            "photo_id": row["photo_id"] if "photo_id" in row.keys() else None,
+            "photo_url": (
+                f"/api/photos/{row['photo_id']}"
+                if "photo_id" in row.keys() and row["photo_id"]
+                else None
+            ),
+        }
+        for row in rows
+    ])
+
+
+@app.route("/api/retention/cleanup", methods=["POST"])
 def cleanup_old_entries():
     cutoff = datetime.now() - timedelta(days=365 * RETENTION_YEARS)
     cutoff_iso = cutoff.isoformat(timespec="seconds")
 
     with get_db() as conn:
-        result = conn.execute("""
+        conn.execute("""
             DELETE FROM waste_entries
             WHERE created_at < ?
         """, (cutoff_iso,))
+
+        conn.execute("""
+            DELETE FROM deleted_waste_entries
+            WHERE deleted_at < ?
+        """, (cutoff_iso,))
+
         conn.commit()
 
     return jsonify({
-        "message": "Old entries cleaned up.",
-        "deleted_rows": result.rowcount,
-        "retention_years": RETENTION_YEARS,
+        "message": "Old records cleaned up.",
+        "cutoff": cutoff_iso,
+        "minimum_retention_years": RETENTION_YEARS,
     })
 
 
-# Create required SQLite tables when the app starts.
-# Railway runs this app with Gunicorn, so code inside __main__ does not run there.
 init_db()
 
-
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
