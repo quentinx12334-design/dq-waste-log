@@ -874,6 +874,7 @@ function App() {
             <div>
               <p>Closing Operations</p>
               <h1>Waste Log</h1>
+              <span className="appCredit">Built by Quentin Nguyen</span>
             </div>
           </div>
 
