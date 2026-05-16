@@ -2663,3 +2663,11 @@ button,
     height: calc(100dvh - 12px);
   }
 }
+
+.creditLine {
+  margin-top: 2px;
+  color: #51433f;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
