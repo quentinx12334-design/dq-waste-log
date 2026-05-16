@@ -50,6 +50,10 @@ function App() {
   const [managerPin, setManagerPin] = useState("")
   const [managerError, setManagerError] = useState("")
   const [showSavedFlash, setShowSavedFlash] = useState(false)
+  const [photoData, setPhotoData] = useState("")
+  const [photoPreview, setPhotoPreview] = useState("")
+  const [photoInfo, setPhotoInfo] = useState("")
+  const [photoBusy, setPhotoBusy] = useState(false)
 
   const [selectedYear, setSelectedYear] = useState(currentYear)
   const [selectedMonth, setSelectedMonth] = useState("")
@@ -106,29 +110,28 @@ function App() {
     return () => window.clearInterval(clockTimer)
   }, [])
 
-useEffect(() => {
-  function getNextTwoAM() {
-    const now = new Date()
-    const nextTwoAM = new Date()
+  useEffect(() => {
+    function getNextTwoAM() {
+      const now = new Date()
+      const nextTwoAM = new Date()
 
-    nextTwoAM.setHours(2, 0, 0, 0)
-    if (nextTwoAM <= now) {
-      nextTwoAM.setDate(nextTwoAM.getDate() + 1)
+      nextTwoAM.setHours(2, 0, 0, 0)
+      if (nextTwoAM <= now) {
+        nextTwoAM.setDate(nextTwoAM.getDate() + 1)
+      }
+
+      return nextTwoAM
     }
 
-    return nextTwoAM
-  }
+    const nextRefresh = getNextTwoAM()
+    const delayUntilRefresh = nextRefresh.getTime() - Date.now()
 
-  const nextRefresh = getNextTwoAM()
-  const delayUntilRefresh = nextRefresh.getTime() - Date.now()
+    const refreshTimer = window.setTimeout(() => {
+      window.location.reload()
+    }, delayUntilRefresh)
 
-  const refreshTimer = window.setTimeout(() => {
-    window.location.reload()
-  }, delayUntilRefresh)
-
-  return () => window.clearTimeout(refreshTimer)
-}, [])
-
+    return () => window.clearTimeout(refreshTimer)
+  }, [])
 
   async function loadRecentEntries() {
     try {
@@ -207,11 +210,97 @@ useEffect(() => {
 
   function clearEntry() {
     setCounts(EMPTY_COUNTS)
+    removeSelectedPhoto()
     setMessage("Current count cleared")
+  }
+
+  function removeSelectedPhoto() {
+    setPhotoData("")
+    setPhotoPreview("")
+    setPhotoInfo("")
+  }
+
+  function getPhotoUrl(photoUrl) {
+    if (!photoUrl) return ""
+    if (photoUrl.startsWith("http")) return photoUrl
+    return `${API_BASE}${photoUrl}`
+  }
+
+  async function compressSelectedPhoto(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+
+    if (!file) return
+
+    if (!file.type.startsWith("image/")) {
+      setMessage("Choose an image file")
+      return
+    }
+
+    setPhotoBusy(true)
+    setMessage("Compressing waste photo...")
+
+    try {
+      const compressedPhoto = await compressImage(file)
+
+      setPhotoData(compressedPhoto.dataUrl)
+      setPhotoPreview(compressedPhoto.dataUrl)
+      setPhotoInfo(`Photo ready • ${compressedPhoto.sizeKb} KB`)
+      setMessage("Waste photo added")
+    } catch {
+      setMessage("Could not read photo — try again")
+      removeSelectedPhoto()
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
+
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+
+      reader.onload = () => {
+        const image = new Image()
+
+        image.onload = () => {
+          const maxSize = 1200
+          const scale = Math.min(1, maxSize / Math.max(image.width, image.height))
+          const width = Math.round(image.width * scale)
+          const height = Math.round(image.height * scale)
+
+          const canvas = document.createElement("canvas")
+          canvas.width = width
+          canvas.height = height
+
+          const context = canvas.getContext("2d")
+          context.drawImage(image, 0, 0, width, height)
+
+          let quality = 0.72
+          let dataUrl = canvas.toDataURL("image/jpeg", quality)
+
+          while (dataUrl.length > 850000 && quality > 0.42) {
+            quality -= 0.08
+            dataUrl = canvas.toDataURL("image/jpeg", quality)
+          }
+
+          resolve({
+            dataUrl,
+            sizeKb: Math.round((dataUrl.length * 0.75) / 1024),
+          })
+        }
+
+        image.onerror = reject
+        image.src = reader.result
+      }
+
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
   }
 
   async function saveSubmittedEntry(data) {
     setCounts(EMPTY_COUNTS)
+    removeSelectedPhoto()
 
     setMessage(
       `Saved successfully • ${data.items_saved} item type(s) • $${data.entry_total.toFixed(2)}`
@@ -246,6 +335,7 @@ useEffect(() => {
           counts,
           employee_name: "",
           note: "",
+          photo_data: photoData || null,
           force,
         }),
       })
@@ -408,7 +498,8 @@ useEffect(() => {
     setView("manager")
   }
 
-  function goBackToKiosk() {
+
+    function goBackToKiosk() {
     setView("employee")
     setManagerPin("")
     setManagerError("")
@@ -636,6 +727,20 @@ useEffect(() => {
                               </div>
 
                               <div className="entryActions">
+                                {entry.photo_url && (
+                                  <button
+                                    className="photoViewBtn"
+                                    onClick={() =>
+                                      window.open(
+                                        getPhotoUrl(entry.photo_url),
+                                        "_blank"
+                                      )
+                                    }
+                                  >
+                                    Photo
+                                  </button>
+                                )}
+
                                 <span>${entry.total_cost.toFixed(2)}</span>
 
                                 <button onClick={() => openEdit(entry)}>
@@ -792,7 +897,7 @@ useEffect(() => {
             <p>Today’s Total</p>
             <strong>${todayWaste.toFixed(2)}</strong>
             <span>
-              Goal: $5.00 daily waste • {isOverGoal ? "Above target" : "Within target"}
+              {isOverGoal ? "Above daily target" : "Within daily target"}
             </span>
           </div>
 
@@ -803,9 +908,9 @@ useEffect(() => {
           </div>
 
           <div className="smallStat">
-            <p>Saved Today</p>
-            <strong>{summary?.row_count || 0}</strong>
-            <span>Saved entries</span>
+            <p>Daily Goal</p>
+            <strong>$5.00</strong>
+            <span>Goal is $5 or less</span>
           </div>
         </section>
 
@@ -814,21 +919,19 @@ useEffect(() => {
             <div className="sectionTitle">
               <div>
                 <h2>Closing Waste Count</h2>
-                <p>Tap + or − for each item. Check the total. Submit once.</p>
+                <p>Tap plus or minus for each wasted item.</p>
               </div>
 
-              <div className="saveStatus">
-                {loading ? "Saving..." : message}
-              </div>
+              <span className="saveStatus">{message}</span>
             </div>
 
             <div className="wasteRows">
               {ITEMS.map((item) => {
                 const quantity = counts[item.name]
-                const itemTotal = quantity * item.price
+                const rowTotal = quantity * item.price
 
                 return (
-                  <article className="wasteRow" key={item.name}>
+                  <div className="wasteRow" key={item.name}>
                     <div className="itemName">
                       <span>{item.category}</span>
                       <strong>{item.name}</strong>
@@ -860,30 +963,31 @@ useEffect(() => {
 
                     <div className="rowTotal">
                       <p>Total</p>
-                      <strong>${itemTotal.toFixed(2)}</strong>
+                      <strong>${rowTotal.toFixed(2)}</strong>
                     </div>
-                  </article>
+                  </div>
                 )
               })}
             </div>
           </section>
 
           <aside className="recentArea">
-            <div className="sectionTitle compact">
+            <div className="sectionTitle">
               <div>
                 <h2>Recent</h2>
-                <p>Latest entries</p>
+                <p>Today’s saved waste.</p>
               </div>
             </div>
 
             <div className="recentList">
               {recentEntries.length === 0 ? (
                 <div className="emptyState">
-                  <strong>No submissions yet</strong>
-                  <p>Saved entries will appear here.</p>
+                  <strong>No entries yet</strong>
+                  <p>Saved waste will show here after submitting.</p>
                 </div>
               ) : (
-                recentEntries.slice(0, 5).map((entry) => (
+
+                                recentEntries.map((entry) => (
                   <div className="recentCard" key={entry.id}>
                     <div>
                       <strong>{entry.item_name}</strong>
@@ -905,21 +1009,47 @@ useEffect(() => {
             Clear Count
           </button>
 
+          <div className={photoPreview ? "photoCapture hasPhoto" : "photoCapture"}>
+            <input
+              id="wastePhotoInput"
+              accept="image/*"
+              capture="environment"
+              type="file"
+              onChange={compressSelectedPhoto}
+            />
+
+            <label htmlFor="wastePhotoInput" className="photoBtn">
+              {photoPreview ? "Replace Photo" : "Add Waste Photo"}
+            </label>
+
+            {photoPreview && (
+  <div className="photoMiniPreview">
+    <img src={photoPreview} alt="Waste bucket preview" />
+    <div>
+      <strong>Photo Added</strong>
+      <span>{photoInfo || "Ready to submit"}</span>
+    </div>
+    <button type="button" onClick={removeSelectedPhoto}>
+      Remove
+    </button>
+  </div>
+)}
+          </div>
+
           <button
             className="submitBtn"
+            disabled={loading || photoBusy}
             onClick={() => submitEntry(false)}
-            disabled={loading}
           >
-            Submit Closing Waste
+            {loading ? "Saving..." : photoBusy ? "Preparing Photo..." : "Submit Closing Waste"}
           </button>
-
         </footer>
       </section>
 
       {showSavedFlash && (
         <div className="savedToast">
-          <strong>Waste Count Saved</strong>
-          <span>Closing waste count logged</span>
+          <strong>Saved</strong>
+          <span>Closing waste count recorded.</span>
         </div>
       )}
     </main>
