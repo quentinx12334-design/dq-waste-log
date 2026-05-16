@@ -2610,3 +2610,44 @@ button,
     font-size: 12px;
   }
 }
+
+/* Faster kiosk touch feel */
+.qtyBtn,
+.clearBtn,
+.submitBtn,
+.managerBtn,
+.managerTop button,
+.yearCard button,
+.annualButton,
+.twoYearButton,
+.monthTile,
+.reportHeader button,
+.entryActions button,
+.pinCard button,
+.editActions button,
+.photoBtn,
+.photoMiniPreview button {
+  transition:
+    transform 0.06s ease,
+    box-shadow 0.06s ease,
+    filter 0.06s ease,
+    background 0.08s ease;
+}
+
+.qtyBtn:active,
+.clearBtn:active,
+.submitBtn:active,
+.managerBtn:active,
+.managerTop button:active,
+.yearCard button:active,
+.annualButton:active,
+.twoYearButton:active,
+.monthTile:active,
+.reportHeader button:active,
+.entryActions button:active,
+.pinCard button:active,
+.editActions button:active,
+.photoBtn:active,
+.photoMiniPreview button:active {
+  transform: scale(0.985);
+}
